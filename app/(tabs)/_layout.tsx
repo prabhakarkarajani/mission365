@@ -4,11 +4,14 @@ import { useColorScheme } from 'nativewind';
 
 import { colors } from '@/shared/theme';
 import { useAuthStore } from '@/features/auth/application/auth.store';
+import { useHabitSync } from '@/features/habits/application/useHabitSync';
 
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const status = useAuthStore((s) => s.status);
+
+  useHabitSync(status === 'authenticated');
 
   if (status === 'unauthenticated') {
     return <Redirect href="/login" />;

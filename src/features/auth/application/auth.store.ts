@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { clearTokens, getTokens, setTokens } from '@/shared/lib/tokens';
+import { clearLocalDataIfSynced } from '@/shared/lib/db';
 
 import * as authApi from '../infrastructure/auth.api';
 import type { User } from '../domain/types';
@@ -71,6 +72,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // best-effort server-side revocation; local session clears regardless
     }
+    const { runSync } = await import('@/features/habits/infrastructure/habit.sync');
+    await runSync().catch(() => {});
+    await clearLocalDataIfSynced();
     clearTokens();
     set({ user: null, status: 'unauthenticated', error: null });
   },

@@ -9,6 +9,13 @@ export function todayKey(): string {
   return toDateKey(new Date());
 }
 
+export function subtractDays(dateKey: string, days: number): string {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() - days);
+  return toDateKey(date);
+}
+
 export interface MonthGridDay {
   dateKey: string;
   day: number;

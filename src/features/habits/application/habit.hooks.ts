@@ -1,10 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '@/features/auth/application/auth.store';
-import { useAchievementToastStore } from '@/features/gamification/application/achievement-toast.store';
+import { todayKey } from '@/shared/lib/date';
 
 import * as habitApi from '../infrastructure/habit.api';
 import type { CreateHabitInput, UpdateHabitInput } from '../infrastructure/habit.api';
+import {
+  archiveHabitLocal,
+  createHabitLocal,
+  deleteHabitLocal,
+  getLocalHabits,
+  getLocalTodayMissions,
+  setCompletionLocal,
+  updateHabitLocal,
+} from '../infrastructure/habit.local';
+import { runSync } from '../infrastructure/habit.sync';
 
 export const habitKeys = {
   all: ['habits'] as const,
@@ -16,21 +26,31 @@ function useInvalidateAfterHabitChange() {
   const queryClient = useQueryClient();
   const refreshUser = useAuthStore((s) => s.refreshUser);
 
-  return () => {
+  const invalidateLocal = () => {
     queryClient.invalidateQueries({ queryKey: habitKeys.all });
     queryClient.invalidateQueries({ queryKey: habitKeys.today });
-    queryClient.invalidateQueries({ queryKey: ['analytics'] });
-    queryClient.invalidateQueries({ queryKey: ['achievements'] });
-    refreshUser();
+  };
+
+  return () => {
+    invalidateLocal();
+    runSync().then(() => {
+      invalidateLocal();
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['achievements'] });
+      refreshUser();
+    });
   };
 }
 
 export function useHabits() {
-  return useQuery({ queryKey: habitKeys.all, queryFn: () => habitApi.listHabits().then((r) => r.habits) });
+  return useQuery({ queryKey: habitKeys.all, queryFn: () => getLocalHabits(false) });
 }
 
 export function useTodayMissions() {
-  return useQuery({ queryKey: habitKeys.today, queryFn: habitApi.getTodayMissions });
+  return useQuery({
+    queryKey: habitKeys.today,
+    queryFn: async () => ({ date: todayKey(), missions: await getLocalTodayMissions() }),
+  });
 }
 
 export function useHabitLogs(start: string, end: string) {
@@ -43,7 +63,7 @@ export function useHabitLogs(start: string, end: string) {
 export function useCreateHabit() {
   const invalidate = useInvalidateAfterHabitChange();
   return useMutation({
-    mutationFn: (input: CreateHabitInput) => habitApi.createHabit(input),
+    mutationFn: (input: CreateHabitInput) => createHabitLocal(input),
     onSuccess: invalidate,
   });
 }
@@ -52,7 +72,7 @@ export function useUpdateHabit() {
   const invalidate = useInvalidateAfterHabitChange();
   return useMutation({
     mutationFn: ({ habitId, input }: { habitId: string; input: UpdateHabitInput }) =>
-      habitApi.updateHabit(habitId, input),
+      updateHabitLocal(habitId, input),
     onSuccess: invalidate,
   });
 }
@@ -60,7 +80,7 @@ export function useUpdateHabit() {
 export function useDeleteHabit() {
   const invalidate = useInvalidateAfterHabitChange();
   return useMutation({
-    mutationFn: (habitId: string) => habitApi.deleteHabit(habitId),
+    mutationFn: (habitId: string) => deleteHabitLocal(habitId),
     onSuccess: invalidate,
   });
 }
@@ -68,21 +88,17 @@ export function useDeleteHabit() {
 export function useArchiveHabit() {
   const invalidate = useInvalidateAfterHabitChange();
   return useMutation({
-    mutationFn: (habitId: string) => habitApi.archiveHabit(habitId),
+    mutationFn: (habitId: string) => archiveHabitLocal(habitId),
     onSuccess: invalidate,
   });
 }
 
 export function useToggleHabitCompletion() {
   const invalidate = useInvalidateAfterHabitChange();
-  const pushAchievements = useAchievementToastStore((s) => s.push);
 
   return useMutation({
     mutationFn: ({ habitId, date, completed }: { habitId: string; date: string; completed: boolean }) =>
-      habitApi.setHabitCompletion(habitId, date, completed),
-    onSuccess: (result) => {
-      invalidate();
-      pushAchievements(result.unlockedAchievements);
-    },
+      setCompletionLocal(habitId, date, completed),
+    onSuccess: invalidate,
   });
 }
