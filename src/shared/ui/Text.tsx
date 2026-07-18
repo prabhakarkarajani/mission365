@@ -1,0 +1,63 @@
+import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
+
+import { cn } from './cn';
+
+export type TextVariant =
+  | 'display'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'body'
+  | 'bodySmall'
+  | 'caption';
+
+export type TextColor =
+  | 'default'
+  | 'muted'
+  | 'primary'
+  | 'danger'
+  | 'success'
+  | 'accent'
+  | 'warning'
+  | 'inverse';
+
+export interface TextProps extends RNTextProps {
+  variant?: TextVariant;
+  color?: TextColor;
+  className?: string;
+}
+
+const variantClasses: Record<TextVariant, string> = {
+  display: 'font-poppins-bold text-[32px] leading-[40px]',
+  h1: 'font-poppins-bold text-[28px] leading-[36px]',
+  h2: 'font-poppins-semibold text-[22px] leading-[28px]',
+  h3: 'font-poppins-semibold text-[18px] leading-[24px]',
+  body: 'font-poppins-regular text-[15px] leading-[22px]',
+  bodySmall: 'font-poppins-regular text-[13px] leading-[18px]',
+  caption: 'font-poppins-medium text-[12px] leading-[16px]',
+};
+
+const colorClasses: Record<TextColor, string> = {
+  default: 'text-foreground dark:text-foreground-dark',
+  muted: 'text-muted',
+  primary: 'text-primary',
+  danger: 'text-danger',
+  success: 'text-success',
+  accent: 'text-accent',
+  warning: 'text-warning',
+  inverse: 'text-white',
+};
+
+export function Text({
+  variant = 'body',
+  color = 'default',
+  className,
+  ...props
+}: TextProps) {
+  return (
+    <RNText
+      className={cn(variantClasses[variant], colorClasses[color], className)}
+      {...props}
+    />
+  );
+}
