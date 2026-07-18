@@ -38,7 +38,7 @@ export default function SignupScreen() {
     setServerError(null);
     try {
       await register(values.fullName, values.email, values.password);
-      router.replace('/home');
+      router.replace('/(onboarding)/tour');
     } catch (error) {
       setServerError(
         error instanceof ApiClientError ? error.message : 'Something went wrong. Please try again.'

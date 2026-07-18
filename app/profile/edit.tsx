@@ -35,7 +35,7 @@ export default function EditProfileScreen() {
       <ScrollView contentContainerClassName="gap-5 px-6 pb-8" keyboardShouldPersistTaps="handled">
         <Input label="Full Name" value={name} onChangeText={setName} />
         <Input label="Timezone" value={timezone} onChangeText={setTimezone} placeholder="e.g. America/New_York" />
-        <Input label="Email" value={user?.email} editable={false} />
+        <Input label="Email" value={user?.email ?? ''} editable={false} />
         {error ? (
           <Text color="danger" variant="bodySmall">
             {error}

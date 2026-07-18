@@ -7,10 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { z } from 'zod';
 
-import { Button, Chip, Input, ModalHeader, Text } from '@/shared/ui';
+import { Button, Chip, Input, ModalHeader, Text, TimePickerInput } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useCreateHabit } from '@/features/habits/application/habit.hooks';
 import type { HabitCategory } from '@/features/habits/domain/types';
+import { WorkoutSuggestions } from '@/features/habits/presentation/WorkoutSuggestions';
 
 const CATEGORIES: { value: HabitCategory; label: string }[] = [
   { value: 'morning', label: 'Morning' },
@@ -162,16 +163,13 @@ export default function NewHabitScreen() {
           </View>
         </View>
 
+        {selectedIcon === 'barbell-outline' ? <WorkoutSuggestions /> : null}
+
         <Controller
           control={control}
           name="reminderTime"
           render={({ field }) => (
-            <Input
-              label="Reminder Time (optional)"
-              placeholder="e.g. 07:00"
-              value={field.value}
-              onChangeText={field.onChange}
-            />
+            <TimePickerInput label="Reminder Time (optional)" value={field.value} onChange={field.onChange} />
           )}
         />
 

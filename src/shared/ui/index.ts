@@ -40,4 +40,7 @@ export type { LineChartProps, LineChartDatum } from './LineChart';
 export { SettingRow, SettingSwitch } from './SettingRow';
 export type { SettingRowProps, SettingSwitchProps } from './SettingRow';
 
+export { TimePickerInput } from './TimePickerInput';
+export type { TimePickerInputProps } from './TimePickerInput';
+
 export { cn } from './cn';
