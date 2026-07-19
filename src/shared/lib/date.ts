@@ -58,3 +58,37 @@ export function formatDisplayDate(dateKey: string): string {
     day: 'numeric',
   });
 }
+
+export function greetingForHour(hour: number): string {
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
+/** Formats a "HH:mm" 24h time string (as stored on Habit.reminderTime) as "7:00 PM". */
+export function formatTime12h(time: string): string {
+  const [hourStr, minuteStr] = time.split(':');
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return time;
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+}
+
+/** Whole days remaining until an ISO deadline, floored at 0. Null if there's no deadline. */
+export function daysUntil(isoDeadline: string | null): number | null {
+  if (!isoDeadline) return null;
+  const diffMs = new Date(isoDeadline).getTime() - new Date().getTime();
+  return Math.max(0, Math.ceil(diffMs / 86_400_000));
+}
+
+/** Formats a minute count as "2h 15m" / "45m", for estimated-time displays. */
+export function formatDurationMinutes(totalMinutes: number): string {
+  if (totalMinutes <= 0) return '0m';
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours === 0) return `${minutes}m`;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
+}

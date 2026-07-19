@@ -7,11 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { z } from 'zod';
 
-import { Button, Chip, Input, ModalHeader, Text, TimePickerInput } from '@/shared/ui';
+import { Badge, Button, Chip, Input, ModalHeader, Text, TimePickerInput } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useCreateHabit } from '@/features/habits/application/habit.hooks';
 import type { HabitCategory } from '@/features/habits/domain/types';
 import { WorkoutSuggestions } from '@/features/habits/presentation/WorkoutSuggestions';
+import { getMissionPresentation, PRIORITY_COLOR } from '@/features/home/domain/missionPresentation';
 
 const CATEGORIES: { value: HabitCategory; label: string }[] = [
   { value: 'morning', label: 'Morning' },
@@ -93,6 +94,16 @@ export default function NewHabitScreen() {
       <Stack.Screen options={{ headerShown: false, presentation: 'modal' }} />
       <ModalHeader title="Add Habit" />
       <ScrollView contentContainerClassName="gap-5 px-6 pb-8" keyboardShouldPersistTaps="handled">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge label={getMissionPresentation(selectedCategory).categoryLabel} color="muted" />
+          <Badge
+            label={getMissionPresentation(selectedCategory).priority}
+            color={PRIORITY_COLOR[getMissionPresentation(selectedCategory).priority]}
+          />
+          <Badge label={`~${getMissionPresentation(selectedCategory).durationMinutes}m`} color="muted" />
+          <Badge label="Daily" color="muted" />
+        </View>
+
         <Controller
           control={control}
           name="name"
@@ -150,9 +161,9 @@ export default function NewHabitScreen() {
             Color
           </Text>
           <View className="flex-row flex-wrap gap-3">
-            {COLORS.map((color) => (
+            {COLORS.map((color, index) => (
               <Pressable
-                key={color}
+                key={`${color}-${index}`}
                 accessibilityRole="button"
                 accessibilityState={{ selected: selectedColor === color }}
                 onPress={() => setValue('color', color)}

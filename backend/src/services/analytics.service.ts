@@ -88,12 +88,12 @@ export async function getFocusMinutesSeries(userId: string, days = 7) {
   return dates.map((date) => ({ date, minutes: minutesByDate.get(date) ?? 0 }));
 }
 
-export async function getSummary(userId: string) {
+export async function getSummary(userId: string, days = 7) {
   const user = await User.findById(userId);
   const [habitSeries, moodSeries, focusSeries] = await Promise.all([
-    getHabitCompletionSeries(userId, 7),
-    getMoodTrend(userId, 7),
-    getFocusMinutesSeries(userId, 7),
+    getHabitCompletionSeries(userId, days),
+    getMoodTrend(userId, days),
+    getFocusMinutesSeries(userId, days),
   ]);
 
   const weeklyHabitPercent =

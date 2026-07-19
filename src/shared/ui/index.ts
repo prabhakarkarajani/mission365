@@ -34,6 +34,15 @@ export type { ProgressBarProps } from './ProgressBar';
 export { BarChart } from './BarChart';
 export type { BarChartProps, BarChartDatum } from './BarChart';
 
+export { Heatmap } from './Heatmap';
+export type { HeatmapProps, HeatmapDatum } from './Heatmap';
+
+export { Skeleton, MissionCardSkeleton } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';
+
+export { Confetti } from './Confetti';
+export type { ConfettiProps } from './Confetti';
+
 export { LineChart } from './LineChart';
 export type { LineChartProps, LineChartDatum } from './LineChart';
 
@@ -56,5 +65,8 @@ export { ErrorState } from './ErrorState';
 export type { ErrorStateProps } from './ErrorState';
 
 export { OfflineBanner } from './OfflineBanner';
+
+export { FloatingAIButton } from './FloatingAIButton';
+export type { FloatingAIButtonProps } from './FloatingAIButton';
 
 export { cn } from './cn';

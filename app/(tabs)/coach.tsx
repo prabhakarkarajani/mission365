@@ -6,27 +6,36 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Card, IconButton, Input, Text, cn } from '@/shared/ui';
 import { colors } from '@/shared/theme';
+import { useAuthStore } from '@/features/auth/application/auth.store';
 import { useCoachChat } from '@/features/coach/hooks/useCoachChat';
+import { useCoachChatStore } from '@/features/coach/application/chat.store';
+import { TypingDots } from '@/features/coach/presentation/TypingDots';
 
 interface SuggestedPrompt {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
-  action: 'send' | 'create-goal' | 'reschedule';
+  action: 'send' | 'reschedule' | 'weekly-review';
+  prompt?: string;
 }
 
 const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
   { label: 'Plan My Day', icon: 'sunny-outline', action: 'send' },
   { label: 'Review Goals', icon: 'flag-outline', action: 'send' },
-  { label: 'Weekly Review', icon: 'stats-chart-outline', action: 'send' },
-  { label: 'Create Goal', icon: 'add-circle-outline', action: 'create-goal' },
-  { label: 'Reschedule Mission', icon: 'time-outline', action: 'reschedule' },
+  { label: 'Generate Roadmap', icon: 'map-outline', action: 'send', prompt: 'Generate a roadmap for my current goal.' },
+  { label: 'Weekly Review', icon: 'stats-chart-outline', action: 'weekly-review' },
   { label: 'Motivate Me', icon: 'flash-outline', action: 'send' },
+  { label: 'Reschedule Mission', icon: 'time-outline', action: 'reschedule' },
 ];
 
 export default function CoachScreen() {
+  const user = useAuthStore((s) => s.user);
   const { messages, sendMessage, isSending } = useCoachChat();
+  const clearChat = useCoachChatStore((s) => s.clear);
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  const firstName = user?.name?.split(' ')[0] ?? '';
+  const userInitial = firstName ? firstName[0]?.toUpperCase() : '🙂';
 
   const scrollToEnd = () => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
 
@@ -39,15 +48,15 @@ export default function CoachScreen() {
   };
 
   const onPrompt = (prompt: SuggestedPrompt) => {
-    if (prompt.action === 'create-goal') {
-      router.push('/goal-builder/categories');
-      return;
-    }
     if (prompt.action === 'reschedule') {
       router.push('/habits');
       return;
     }
-    submit(prompt.label);
+    if (prompt.action === 'weekly-review') {
+      router.push('/weekly-review');
+      return;
+    }
+    submit(prompt.prompt ?? prompt.label);
   };
 
   return (
@@ -58,15 +67,26 @@ export default function CoachScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <View className="flex-row items-center gap-3 px-6 pb-2 pt-1">
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-            <Ionicons name="sparkles" size={18} color={colors.primary} />
+          <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+            <Ionicons name="sparkles" size={20} color={colors.primary} />
           </View>
           <View className="flex-1">
-            <Text variant="h2">AI Coach</Text>
+            <Text variant="h2">Maya</Text>
             <Text variant="caption" color="muted">
-              Grounded in your goals &amp; missions
+              Your AI Coach · grounded in your goals &amp; missions
             </Text>
           </View>
+          {messages.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Clear conversation"
+              onPress={clearChat}
+              hitSlop={8}
+              className="h-9 w-9 items-center justify-center"
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.muted} />
+            </Pressable>
+          ) : null}
         </View>
 
         <ScrollView
@@ -81,21 +101,22 @@ export default function CoachScreen() {
                 <Ionicons name="sparkles-outline" size={26} color={colors.primary} />
               </View>
               <Text variant="body" className="text-center">
-                Hi, I&apos;m your AI Coach
+                Hi, I&apos;m Maya, your AI Coach
               </Text>
               <Text variant="bodySmall" color="muted" className="text-center">
                 Ask me to plan your day, review your goals, or pick a prompt below to get started.
               </Text>
             </Card>
           ) : (
-            messages.map((message) => <ChatBubble key={message.id} role={message.role} content={message.content} />)
+            messages.map((message) => (
+              <ChatBubble key={message.id} role={message.role} content={message.content} userInitial={userInitial} />
+            ))
           )}
 
           {isSending ? (
-            <View className="max-w-[85%] self-start rounded-card rounded-bl-sm bg-surface px-4 py-3 dark:bg-surface-dark">
-              <Text variant="bodySmall" color="muted">
-                Thinking…
-              </Text>
+            <View className="max-w-[85%] flex-row items-end gap-2 self-start">
+              <Avatar role="assistant" initial={userInitial} />
+              <TypingDots />
             </View>
           ) : null}
         </ScrollView>
@@ -151,18 +172,44 @@ export default function CoachScreen() {
   );
 }
 
-function ChatBubble({ role, content }: { role: 'user' | 'assistant'; content: string }) {
+function Avatar({ role, initial }: { role: 'user' | 'assistant'; initial: string }) {
+  if (role === 'assistant') {
+    return (
+      <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/10">
+        <Ionicons name="sparkles" size={13} color={colors.primary} />
+      </View>
+    );
+  }
+  return (
+    <View className="h-7 w-7 items-center justify-center rounded-full bg-black/5 dark:bg-white/10">
+      <Text variant="caption">{initial}</Text>
+    </View>
+  );
+}
+
+function ChatBubble({
+  role,
+  content,
+  userInitial,
+}: {
+  role: 'user' | 'assistant';
+  content: string;
+  userInitial: string;
+}) {
   const isUser = role === 'user';
   return (
-    <View
-      className={cn(
-        'max-w-[85%] rounded-card px-4 py-3',
-        isUser ? 'self-end rounded-br-sm bg-primary' : 'self-start rounded-bl-sm bg-surface dark:bg-surface-dark'
-      )}
-    >
-      <Text variant="body" color={isUser ? 'inverse' : 'default'}>
-        {content}
-      </Text>
+    <View className={cn('max-w-[85%] flex-row items-end gap-2', isUser ? 'self-end flex-row-reverse' : 'self-start')}>
+      <Avatar role={role} initial={userInitial} />
+      <View
+        className={cn(
+          'rounded-card px-4 py-3',
+          isUser ? 'rounded-br-sm bg-primary' : 'rounded-bl-sm bg-surface dark:bg-surface-dark'
+        )}
+      >
+        <Text variant="body" color={isUser ? 'inverse' : 'default'}>
+          {content}
+        </Text>
+      </View>
     </View>
   );
 }

@@ -1,42 +1,71 @@
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Badge, Card, Checkbox, CircularProgress, EmptyState, LoadingState, Text } from '@/shared/ui';
+import { Confetti, EmptyState, MissionCardSkeleton, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useAuthStore } from '@/features/auth/application/auth.store';
-import { useTodayMissions, useToggleHabitCompletion } from '@/features/habits/application/habit.hooks';
-import { todayKey } from '@/shared/lib/date';
+import { useToggleHabitCompletion } from '@/features/habits/application/habit.hooks';
+import { todayKey, formatDisplayDate, greetingForHour } from '@/shared/lib/date';
 import type { IoniconName } from '@/shared/lib/icon-name';
 
+import { useHomeBrief } from '@/features/home/application/useHomeBrief';
+import { TodaysBriefCard } from '@/features/home/presentation/TodaysBriefCard';
+import { AICoachCard } from '@/features/home/presentation/AICoachCard';
+import { CurrentGoalCard } from '@/features/home/presentation/CurrentGoalCard';
+import { MissionCard } from '@/features/home/presentation/MissionCard';
+import { SmartSuggestionsCard } from '@/features/home/presentation/SmartSuggestionsCard';
+import { ContinueMissionCTA } from '@/features/home/presentation/ContinueMissionCTA';
+import { UpcomingRemindersTimeline } from '@/features/home/presentation/UpcomingRemindersTimeline';
+import { AchievementStrip } from '@/features/home/presentation/AchievementStrip';
+
 const QUICK_ACTIONS: { href: Href; icon: IoniconName; label: string; color: string }[] = [
-  { href: '/journal', icon: 'book-outline', label: 'Journal', color: colors.accent },
-  { href: '/trackers', icon: 'water-outline', label: 'Trackers', color: colors.primary },
-  { href: '/focus', icon: 'timer-outline', label: 'Focus', color: colors.success },
+  { href: '/coach', icon: 'sparkles-outline', label: 'Ask AI', color: colors.primary },
+  { href: '/goals/new', icon: 'flag-outline', label: 'New Goal', color: colors.accent },
+  { href: '/habits/new', icon: 'add-circle-outline', label: 'New Mission', color: colors.success },
   { href: '/calendar', icon: 'calendar-outline', label: 'Calendar', color: colors.warning },
-  { href: '/analytics', icon: 'bar-chart-outline', label: 'Analytics', color: colors.secondary },
+  { href: '/analytics', icon: 'bar-chart-outline', label: 'Insights', color: colors.secondary },
+];
+
+const MOTIVATIONAL_LINES = [
+  "Small steps, every day, win the year.",
+  "Your future self is built by today's choices.",
+  "Consistency beats intensity.",
+  "Progress, not perfection.",
+  "One mission at a time.",
+  "Discipline is choosing what you want most.",
+  "Show up — the rest follows.",
 ];
 
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
-  const { data, isLoading, refetch } = useTodayMissions();
+  const brief = useHomeBrief();
   const toggleCompletion = useToggleHabitCompletion();
   const [refreshing, setRefreshing] = useState(false);
+  const [coachDismissed, setCoachDismissed] = useState(false);
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
+  const prevPendingCount = useRef<number | null>(null);
 
-  const missions = data?.missions ?? [];
-  const completedCount = missions.filter((m) => m.completed).length;
-  const pendingCount = missions.length - completedCount;
-  const percent = missions.length > 0 ? (completedCount / missions.length) * 100 : 0;
+  useEffect(() => {
+    if (brief.isLoading) return;
+    const prev = prevPendingCount.current;
+    if (prev !== null && prev > 0 && brief.pendingCount === 0 && brief.completedCount > 0) {
+      setConfettiTrigger((t) => t + 1);
+    }
+    prevPendingCount.current = brief.pendingCount;
+  }, [brief.pendingCount, brief.completedCount, brief.isLoading]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await brief.refetch();
     setRefreshing(false);
   };
 
   const firstName = user?.name?.split(' ')[0] ?? '';
+  const motivationalLine = MOTIVATIONAL_LINES[new Date().getDate() % MOTIVATIONAL_LINES.length];
+  const greeting = greetingForHour(new Date().getHours());
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top']}>
@@ -44,54 +73,116 @@ export default function HomeScreen() {
         contentContainerClassName="gap-5 p-6"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View className="flex-row items-center justify-between">
+        {/* Header */}
+        <View className="flex-row items-start justify-between">
           <View className="flex-1 gap-1 pr-3">
-            <Text variant="h1">Good Morning{firstName ? `, ${firstName}` : ''} 👋</Text>
-            {user && user.currentStreak > 0 ? (
-              <Badge label={`🔥 ${user.currentStreak} day streak`} color="primary" />
-            ) : (
-              <Text variant="body" color="muted">
-                Let&apos;s build your first streak today.
-              </Text>
-            )}
-          </View>
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Text variant="h3" color="primary">
-              {firstName ? firstName[0]?.toUpperCase() : '👤'}
+            <Text variant="h1">
+              {greeting}
+              {firstName ? `, ${firstName}` : ''} 👋
             </Text>
+            <Text variant="caption" color="muted">
+              {formatDisplayDate(todayKey())}
+            </Text>
+            <Text variant="bodySmall" color="muted">
+              {motivationalLine}
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+              onPress={() => router.push('/settings')}
+              className="h-11 w-11 items-center justify-center rounded-full bg-surface dark:bg-surface-dark"
+            >
+              <Ionicons name="notifications-outline" size={20} color={colors.muted} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open AI Coach"
+              onPress={() => router.push('/coach')}
+              className="h-11 w-11 items-center justify-center rounded-full bg-primary/10"
+            >
+              <Ionicons name="sparkles" size={20} color={colors.primary} />
+            </Pressable>
           </View>
         </View>
 
-        <Card className="items-center gap-4 py-6">
-          <CircularProgress percent={percent} label="Today's Progress" />
-          <View className="w-full flex-row justify-around">
-            <View className="items-center">
-              <Text variant="h3" color="success">
-                {completedCount}
-              </Text>
-              <Text variant="caption" color="muted">
-                Completed
-              </Text>
-            </View>
-            <View className="items-center">
-              <Text variant="h3" color="danger">
-                {pendingCount}
-              </Text>
-              <Text variant="caption" color="muted">
-                Pending
-              </Text>
-            </View>
-            <View className="items-center">
-              <Text variant="h3" color="primary">
-                {user?.xp ?? 0}
-              </Text>
-              <Text variant="caption" color="muted">
-                Total XP
-              </Text>
-            </View>
-          </View>
-        </Card>
+        {/* Today's Brief */}
+        <TodaysBriefCard brief={brief} currentStreak={user?.currentStreak ?? 0} xp={user?.xp ?? 0} level={user?.level ?? 1} />
 
+        {/* AI Coach */}
+        {!coachDismissed ? (
+          <AICoachCard
+            firstName={firstName}
+            topPendingMission={brief.topPendingMission}
+            onDismiss={() => setCoachDismissed(true)}
+          />
+        ) : null}
+
+        {/* Current Goal */}
+        <CurrentGoalCard goal={brief.currentGoal} milestone={brief.currentMilestone} daysRemaining={brief.daysRemaining} />
+
+        {/* Today's Missions */}
+        <View className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <Text variant="h3">Today&apos;s Missions</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add mission"
+              onPress={() => router.push('/habits/new')}
+            >
+              <Text color="primary" variant="bodySmall">
+                + Add
+              </Text>
+            </Pressable>
+          </View>
+
+          {brief.isLoading ? (
+            <View className="gap-3">
+              <MissionCardSkeleton />
+              <MissionCardSkeleton />
+              <MissionCardSkeleton />
+            </View>
+          ) : brief.missions.length === 0 ? (
+            <View className="rounded-card bg-surface p-4 shadow-elevation-sm dark:bg-surface-dark">
+              <EmptyState
+                icon="rocket-outline"
+                title="No missions yet"
+                description="Add your first one to start today's missions."
+                actionLabel="Add a mission"
+                onAction={() => router.push('/habits/new')}
+              />
+            </View>
+          ) : (
+            brief.missions.map((item) => (
+              <MissionCard
+                key={item.mission.habit._id}
+                item={item}
+                onToggle={() =>
+                  toggleCompletion.mutate({
+                    habitId: item.mission.habit._id,
+                    date: todayKey(),
+                    completed: !item.mission.completed,
+                  })
+                }
+              />
+            ))
+          )}
+        </View>
+
+        {/* Smart AI Suggestions */}
+        <SmartSuggestionsCard />
+
+        {/* Continue CTA */}
+        <ContinueMissionCTA topPendingMission={brief.topPendingMission} />
+
+        {/* Upcoming Reminders */}
+        <UpcomingRemindersTimeline missions={brief.missions.filter((m) => !m.mission.completed)} />
+
+        {/* Achievements */}
+        <AchievementStrip xp={user?.xp ?? 0} level={user?.level ?? 1} currentStreak={user?.currentStreak ?? 0} />
+
+        {/* Quick Actions */}
         <View className="gap-3">
           <Text variant="h3">Quick Actions</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3">
@@ -115,55 +206,8 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
         </View>
-
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text variant="h3">Today&apos;s Missions</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add habit"
-              onPress={() => router.push('/habits/new')}
-            >
-              <Text color="primary" variant="bodySmall">
-                + Add
-              </Text>
-            </Pressable>
-          </View>
-
-          {isLoading ? (
-            <LoadingState label="Loading today's missions..." />
-          ) : missions.length === 0 ? (
-            <Card>
-              <EmptyState
-                icon="rocket-outline"
-                title="No habits yet"
-                description="Add your first one to start today's missions."
-                actionLabel="Add a habit"
-                onAction={() => router.push('/habits/new')}
-              />
-            </Card>
-          ) : (
-            missions.map(({ habit, completed }) => (
-              <Card key={habit._id} className="flex-row items-center gap-3">
-                <Checkbox
-                  checked={completed}
-                  onPress={() =>
-                    toggleCompletion.mutate({ habitId: habit._id, date: todayKey(), completed: !completed })
-                  }
-                />
-                <View className="flex-1">
-                  <Text variant="body">{habit.name}</Text>
-                  {habit.currentStreak > 0 ? (
-                    <Text variant="caption" color="muted">
-                      🔥 {habit.currentStreak} day streak
-                    </Text>
-                  ) : null}
-                </View>
-              </Card>
-            ))
-          )}
-        </View>
       </ScrollView>
+      <Confetti trigger={confettiTrigger} />
     </SafeAreaView>
   );
 }

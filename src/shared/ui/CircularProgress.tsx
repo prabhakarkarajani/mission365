@@ -1,9 +1,12 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import Animated, { useAnimatedProps, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 
 import { colors } from '../theme';
 import { Text } from './Text';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export interface CircularProgressProps {
   percent: number;
@@ -27,8 +30,17 @@ export function CircularProgress({
   const clamped = Math.max(0, Math.min(100, percent));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (clamped / 100) * circumference;
   const center = size / 2;
+
+  const animatedPercent = useSharedValue(0);
+
+  useEffect(() => {
+    animatedPercent.value = withTiming(clamped, { duration: 700, easing: Easing.out(Easing.cubic) });
+  }, [clamped, animatedPercent]);
+
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: circumference - (animatedPercent.value / 100) * circumference,
+  }));
 
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
@@ -41,7 +53,7 @@ export function CircularProgress({
           strokeWidth={strokeWidth}
           fill="none"
         />
-        <Circle
+        <AnimatedCircle
           cx={center}
           cy={center}
           r={radius}
@@ -49,7 +61,7 @@ export function CircularProgress({
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
+          animatedProps={animatedProps}
           strokeLinecap="round"
         />
       </Svg>

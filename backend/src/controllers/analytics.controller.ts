@@ -16,7 +16,8 @@ function parseDays(query: unknown): number {
 }
 
 export const summary = asyncHandler(async (req, res) => {
-  const data = await getSummary(req.userId!);
+  const days = parseDays(req.query);
+  const data = await getSummary(req.userId!, days);
   sendSuccess(res, 200, data);
 });
 
