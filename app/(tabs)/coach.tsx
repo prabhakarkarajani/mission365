@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
 
-import { Badge, Button, Card, Input, ModalHeader, Text } from '@/shared/ui';
+import { Badge, Button, Card, Input, Text } from '@/shared/ui';
 import { useGenerateRoadmap } from '@/features/coach/hooks/useGenerateRoadmap';
 
 export default function CoachScreen() {
@@ -18,10 +17,10 @@ export default function CoachScreen() {
   const roadmap = generateRoadmap.data;
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top', 'bottom']}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ModalHeader title="AI Coach" />
-      <ScrollView contentContainerClassName="gap-5 px-6 pb-8" keyboardShouldPersistTaps="handled">
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top']}>
+      <ScrollView contentContainerClassName="gap-5 p-6" keyboardShouldPersistTaps="handled">
+        <Text variant="h1">AI Coach</Text>
+
         <View className="gap-2">
           <Text variant="bodySmall" color="muted">
             What do you want to achieve?
