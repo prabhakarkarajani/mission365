@@ -5,4 +5,5 @@ import { mockProvider } from '../mock/mock.provider';
 export const claudeProvider: AIProvider = {
   name: 'claude',
   generateRoadmap: (input) => mockProvider.generateRoadmap(input),
+  chat: (input) => mockProvider.chat(input),
 };

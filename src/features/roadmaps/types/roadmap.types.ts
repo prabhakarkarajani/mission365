@@ -11,6 +11,8 @@ export interface SuggestedMission {
   type: MissionType;
   priority: MissionPriority;
   recurrenceHint?: string;
+  /** 0 = today, 6 = the last day of the first week. Present on firstWeekMissions. */
+  dayOffset?: number;
 }
 
 /**
@@ -19,6 +21,12 @@ export interface SuggestedMission {
  */
 export interface Roadmap {
   summary: string;
+  /** 0-100 confidence estimate that the plan succeeds if followed. */
+  estimatedSuccessPercent: number;
+  /** Total plan length in days. */
+  timelineDays: number;
   milestones: RoadmapMilestone[];
   suggestedMissions: SuggestedMission[];
+  /** The concrete Day 0-6 missions used to seed the user's first week. */
+  firstWeekMissions: SuggestedMission[];
 }

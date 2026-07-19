@@ -5,4 +5,5 @@ import { mockProvider } from '../mock/mock.provider';
 export const openaiProvider: AIProvider = {
   name: 'openai',
   generateRoadmap: (input) => mockProvider.generateRoadmap(input),
+  chat: (input) => mockProvider.chat(input),
 };

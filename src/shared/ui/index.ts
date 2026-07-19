@@ -43,6 +43,9 @@ export type { SettingRowProps, SettingSwitchProps } from './SettingRow';
 export { TimePickerInput } from './TimePickerInput';
 export type { TimePickerInputProps } from './TimePickerInput';
 
+export { DatePickerInput } from './DatePickerInput';
+export type { DatePickerInputProps } from './DatePickerInput';
+
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 

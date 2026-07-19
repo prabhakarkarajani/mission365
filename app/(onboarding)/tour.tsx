@@ -51,7 +51,7 @@ export default function OnboardingTourScreen() {
 
   const finish = () => {
     storage.set(ONBOARDING_TOUR_SEEN_KEY, '1');
-    router.replace('/home');
+    router.replace('/goal-builder/categories');
   };
 
   return (
