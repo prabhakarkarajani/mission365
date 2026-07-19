@@ -51,6 +51,19 @@ export default function SettingsScreen() {
       <ScrollView contentContainerClassName="gap-5 px-6 pb-8">
         <View className="gap-2">
           <Text variant="bodySmall" color="muted">
+            AI
+          </Text>
+          <Card>
+            <SettingRow
+              label="AI Coach"
+              description="Generate a roadmap and suggested missions for a goal"
+              onPress={() => router.push('/coach')}
+            />
+          </Card>
+        </View>
+
+        <View className="gap-2">
+          <Text variant="bodySmall" color="muted">
             Appearance
           </Text>
           <Card>
