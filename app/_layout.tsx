@@ -8,25 +8,27 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClientProvider } from '@tanstack/react-query';
 import {
   useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
-} from '@expo-google-fonts/poppins';
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 
 import { queryClient } from '@/shared/lib/query-client';
 import { initDb } from '@/shared/lib/db';
+import { injectPwaMeta } from '@/shared/lib/pwaMeta';
 import { useAuthStore } from '@/features/auth/application/auth.store';
 import { AchievementToast } from '@/features/gamification/presentation/AchievementToast';
+import { OfflineBanner } from '@/shared/ui';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
   const authStatus = useAuthStore((s) => s.status);
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -35,6 +37,7 @@ export default function RootLayout() {
   useEffect(() => {
     hydrate();
     initDb().then(() => setDbReady(true));
+    injectPwaMeta();
   }, [hydrate]);
 
   const authResolved = authStatus === 'authenticated' || authStatus === 'unauthenticated';
@@ -58,6 +61,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
         </Stack>
         <AchievementToast />
+        <OfflineBanner />
         <StatusBar style="auto" />
       </SafeAreaProvider>
     </QueryClientProvider>

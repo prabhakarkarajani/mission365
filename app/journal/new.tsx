@@ -71,11 +71,11 @@ export default function NewJournalEntryScreen() {
             multiline
             numberOfLines={8}
             placeholder="Write about your day, gratitude, or anything on your mind..."
-            placeholderTextColor="#647468"
+            placeholderTextColor="#64748B"
             value={content}
             onChangeText={setContent}
             textAlignVertical="top"
-            className="min-h-[160px] rounded-xl border border-border bg-surface p-4 font-poppins-regular text-[15px] text-foreground dark:border-border-dark dark:bg-surface-dark dark:text-foreground-dark"
+            className="min-h-[160px] rounded-input border border-border bg-surface p-4 font-inter-regular text-[16px] text-foreground dark:border-border-dark dark:bg-surface-dark dark:text-foreground-dark"
           />
         </View>
 

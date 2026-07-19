@@ -4,7 +4,7 @@ import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Badge, Card, Checkbox, CircularProgress, Text } from '@/shared/ui';
+import { Badge, Card, Checkbox, CircularProgress, EmptyState, LoadingState, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useAuthStore } from '@/features/auth/application/auth.store';
 import { useTodayMissions, useToggleHabitCompletion } from '@/features/habits/application/habit.hooks';
@@ -44,15 +44,22 @@ export default function HomeScreen() {
         contentContainerClassName="gap-5 p-6"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View className="gap-1">
-          <Text variant="h1">Good Morning{firstName ? `, ${firstName}` : ''} 👋</Text>
-          {user && user.currentStreak > 0 ? (
-            <Badge label={`🔥 ${user.currentStreak} day streak`} color="primary" />
-          ) : (
-            <Text variant="body" color="muted">
-              Let&apos;s build your first streak today.
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 gap-1 pr-3">
+            <Text variant="h1">Good Morning{firstName ? `, ${firstName}` : ''} 👋</Text>
+            {user && user.currentStreak > 0 ? (
+              <Badge label={`🔥 ${user.currentStreak} day streak`} color="primary" />
+            ) : (
+              <Text variant="body" color="muted">
+                Let&apos;s build your first streak today.
+              </Text>
+            )}
+          </View>
+          <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <Text variant="h3" color="primary">
+              {firstName ? firstName[0]?.toUpperCase() : '👤'}
             </Text>
-          )}
+          </View>
         </View>
 
         <Card className="items-center gap-4 py-6">
@@ -124,15 +131,16 @@ export default function HomeScreen() {
           </View>
 
           {isLoading ? (
-            <Text color="muted">Loading...</Text>
+            <LoadingState label="Loading today's missions..." />
           ) : missions.length === 0 ? (
-            <Card className="items-center gap-2 py-8">
-              <Text variant="body" color="muted" className="text-center">
-                No habits yet. Add your first one to start today&apos;s missions.
-              </Text>
-              <Pressable accessibilityRole="button" onPress={() => router.push('/habits/new')}>
-                <Text color="primary">Add a habit</Text>
-              </Pressable>
+            <Card>
+              <EmptyState
+                icon="rocket-outline"
+                title="No habits yet"
+                description="Add your first one to start today's missions."
+                actionLabel="Add a habit"
+                onAction={() => router.push('/habits/new')}
+              />
             </Card>
           ) : (
             missions.map(({ habit, completed }) => (

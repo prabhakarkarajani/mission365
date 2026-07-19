@@ -48,11 +48,16 @@ export default function LoginScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top', 'bottom']}>
       <ScrollView contentContainerClassName="flex-1 justify-center gap-6 px-8" keyboardShouldPersistTaps="handled">
-        <View className="gap-1">
-          <Text variant="h1">Login</Text>
-          <Text variant="body" color="muted">
-            Welcome back! Login to continue your journey
-          </Text>
+        <View className="items-center gap-4">
+          <View className="h-16 w-16 items-center justify-center rounded-card bg-primary/10">
+            <Ionicons name="rocket-outline" size={30} color={colors.primary} />
+          </View>
+          <View className="items-center gap-1">
+            <Text variant="h1">Welcome back</Text>
+            <Text variant="body" color="muted">
+              Login to continue your journey
+            </Text>
+          </View>
         </View>
 
         <View className="gap-4">
@@ -104,9 +109,12 @@ export default function LoginScreen() {
         </View>
 
         {serverError ? (
-          <Text color="danger" variant="bodySmall">
-            {serverError}
-          </Text>
+          <View className="flex-row items-center gap-2 rounded-input bg-danger/10 px-4 py-3">
+            <Ionicons name="alert-circle-outline" size={18} color={colors.danger} />
+            <Text color="danger" variant="bodySmall" className="flex-1">
+              {serverError}
+            </Text>
+          </View>
         ) : null}
 
         <Button label="Login" variant="primary" size="lg" loading={isSubmitting} onPress={handleSubmit(onSubmit)} />

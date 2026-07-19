@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
-import { Card, Chip, IconButton, ProgressBar, Text } from '@/shared/ui';
-import { colors } from '@/shared/theme';
+import { Card, Chip, EmptyState, IconButton, LoadingState, ProgressBar, Text } from '@/shared/ui';
 import { useGoals } from '@/features/goals/application/goal.hooks';
 import type { GoalStatus } from '@/features/goals/domain/types';
 
@@ -39,18 +37,15 @@ export default function GoalsScreen() {
         </View>
 
         {isLoading ? (
-          <Text color="muted">Loading...</Text>
+          <LoadingState label="Loading goals..." />
         ) : !goals || goals.length === 0 ? (
-          <Card className="items-center gap-2 py-10">
-            <Ionicons name="flag-outline" size={32} color={colors.muted} />
-            <Text variant="body" color="muted" className="text-center">
-              No {status} goals yet.
-            </Text>
-            {status === 'active' ? (
-              <Pressable accessibilityRole="button" onPress={() => router.push('/goals/new')}>
-                <Text color="primary">Set your first goal</Text>
-              </Pressable>
-            ) : null}
+          <Card>
+            <EmptyState
+              icon="flag-outline"
+              title={`No ${status} goals yet`}
+              actionLabel={status === 'active' ? 'Set your first goal' : undefined}
+              onAction={status === 'active' ? () => router.push('/goals/new') : undefined}
+            />
           </Card>
         ) : (
           goals.map((goal) => {

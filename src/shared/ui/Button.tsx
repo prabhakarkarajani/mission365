@@ -17,7 +17,7 @@ export interface ButtonProps extends Omit<PressableProps, 'children'> {
 }
 
 const containerVariantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-primary',
+  primary: 'bg-primary shadow-elevation-sm',
   secondary: 'bg-black/5 dark:bg-white/10',
   outline: 'bg-transparent border border-border dark:border-border-dark',
   ghost: 'bg-transparent',
@@ -31,9 +31,9 @@ const labelColorByVariant: Record<ButtonVariant, 'inverse' | 'default'> = {
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-9 px-3 rounded-lg',
-  md: 'h-12 px-5 rounded-xl',
-  lg: 'h-14 px-6 rounded-2xl',
+  sm: 'h-9 px-3 rounded-control',
+  md: 'h-12 px-5 rounded-control',
+  lg: 'h-14 px-6 rounded-control',
 };
 
 const labelSizeClasses: Record<ButtonSize, TextVariant> = {

@@ -1,4 +1,5 @@
 import { Redirect, Tabs } from 'expo-router';
+import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 
@@ -11,7 +12,7 @@ export default function TabsLayout() {
   const isDark = colorScheme === 'dark';
   const status = useAuthStore((s) => s.status);
 
-  useHabitSync(status === 'authenticated');
+  useHabitSync(status === 'authenticated' && Platform.OS !== 'web');
 
   if (status === 'unauthenticated') {
     return <Redirect href="/login" />;
@@ -25,8 +26,16 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: isDark ? colors.background.dark : colors.background.light,
+          height: 64,
+          paddingTop: 8,
+          paddingBottom: 10,
+          borderTopWidth: 1,
+          backgroundColor: isDark ? colors.surface.dark : colors.surface.light,
           borderTopColor: isDark ? colors.border.dark : colors.border.light,
+        },
+        tabBarLabelStyle: {
+          fontFamily: 'Inter_500Medium',
+          fontSize: 11,
         },
       }}
     >

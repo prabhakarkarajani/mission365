@@ -100,7 +100,7 @@ export async function createHabitLocal(input: CreateHabitInput): Promise<Habit> 
   const now = new Date().toISOString();
   const category = input.category ?? 'other';
   const icon = input.icon ?? 'checkmark-circle-outline';
-  const color = input.color ?? '#6366F1';
+  const color = input.color ?? '#4F46E5';
   const frequencyType = input.frequency?.type ?? 'daily';
   const daysOfWeek = input.frequency?.daysOfWeek ?? [];
 

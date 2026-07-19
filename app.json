@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mission365.app",
+      "bundleIdentifier": "com.mission365.app.dev",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -17,7 +17,7 @@
     "android": {
       "package": "com.mission365.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#EEF2FF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -28,15 +28,26 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./plugins/withoutPushEntitlement.js",
+      "./plugins/withNativeBuildFixes.js",
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#F8FAFC",
+          "dark": {
+            "backgroundColor": "#0B0F1A"
+          }
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       [
         "expo-notifications",
         {
-          "color": "#6366F1"
+          "color": "#4F46E5"
         }
       ],
       "@react-native-community/datetimepicker",

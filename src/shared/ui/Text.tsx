@@ -28,13 +28,13 @@ export interface TextProps extends RNTextProps {
 }
 
 const variantClasses: Record<TextVariant, string> = {
-  display: 'font-poppins-bold text-[32px] leading-[40px]',
-  h1: 'font-poppins-bold text-[28px] leading-[36px]',
-  h2: 'font-poppins-semibold text-[22px] leading-[28px]',
-  h3: 'font-poppins-semibold text-[18px] leading-[24px]',
-  body: 'font-poppins-regular text-[15px] leading-[22px]',
-  bodySmall: 'font-poppins-regular text-[13px] leading-[18px]',
-  caption: 'font-poppins-medium text-[12px] leading-[16px]',
+  display: 'font-inter-bold text-[32px] leading-[40px]',
+  h1: 'font-inter-bold text-[24px] leading-[32px]',
+  h2: 'font-inter-semibold text-[20px] leading-[28px]',
+  h3: 'font-inter-semibold text-[18px] leading-[24px]',
+  body: 'font-inter-regular text-[16px] leading-[24px]',
+  bodySmall: 'font-inter-regular text-[14px] leading-[20px]',
+  caption: 'font-inter-medium text-[12px] leading-[16px]',
 };
 
 const colorClasses: Record<TextColor, string> = {

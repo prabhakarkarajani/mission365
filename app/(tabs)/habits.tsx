@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Badge, Card, IconButton, Text } from '@/shared/ui';
+import { Badge, Card, EmptyState, IconButton, LoadingState, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { asIoniconName } from '@/shared/lib/icon-name';
 import { useHabits } from '@/features/habits/application/habit.hooks';
@@ -22,16 +22,16 @@ export default function HabitsScreen() {
         </View>
 
         {isLoading ? (
-          <Text color="muted">Loading...</Text>
+          <LoadingState label="Loading habits..." />
         ) : !habits || habits.length === 0 ? (
-          <Card className="items-center gap-2 py-10">
-            <Ionicons name="checkmark-done-outline" size={32} color={colors.muted} />
-            <Text variant="body" color="muted" className="text-center">
-              No habits yet. Start building your routine.
-            </Text>
-            <Pressable accessibilityRole="button" onPress={() => router.push('/habits/new')}>
-              <Text color="primary">Add your first habit</Text>
-            </Pressable>
+          <Card>
+            <EmptyState
+              icon="checkmark-done-outline"
+              title="No habits yet"
+              description="Start building your routine."
+              actionLabel="Add your first habit"
+              onAction={() => router.push('/habits/new')}
+            />
           </Card>
         ) : (
           habits.map((habit) => (

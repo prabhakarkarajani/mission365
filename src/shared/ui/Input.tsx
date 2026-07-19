@@ -32,7 +32,7 @@ export function Input({
         <TextInput
           placeholderTextColor={colors.muted}
           className={cn(
-            'h-12 rounded-xl border border-border bg-surface px-4 font-poppins-regular text-[15px] text-foreground dark:border-border-dark dark:bg-surface-dark dark:text-foreground-dark',
+            'h-12 rounded-input border border-border bg-surface px-4 font-inter-regular text-[16px] text-foreground dark:border-border-dark dark:bg-surface-dark dark:text-foreground-dark',
             rightElement && 'pr-11',
             error && 'border-danger',
             className
