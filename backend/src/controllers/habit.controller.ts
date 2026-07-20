@@ -8,6 +8,7 @@ import {
   getTodayOverview,
   listHabits,
   setHabitCompletion,
+  setHabitSkip,
   updateHabit,
 } from '../services/habit.service';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -34,6 +35,11 @@ export const updateHabitSchema = createHabitSchema.partial();
 export const toggleCompletionSchema = z.object({
   date: z.string().refine(isValidDateKey, 'date must be in YYYY-MM-DD format'),
   completed: z.boolean(),
+});
+
+export const toggleSkipSchema = z.object({
+  date: z.string().refine(isValidDateKey, 'date must be in YYYY-MM-DD format'),
+  skipped: z.boolean(),
 });
 
 export const habitIdParamSchema = z.object({ habitId: z.string().min(1) });
@@ -77,6 +83,13 @@ export const toggleCompletion = asyncHandler(async (req, res) => {
   const { date, completed } = req.body as z.infer<typeof toggleCompletionSchema>;
   const result = await setHabitCompletion(req.userId!, habitId, date, completed);
   sendSuccess(res, 200, result);
+});
+
+export const toggleSkip = asyncHandler(async (req, res) => {
+  const { habitId } = req.params as unknown as z.infer<typeof habitIdParamSchema>;
+  const { date, skipped } = req.body as z.infer<typeof toggleSkipSchema>;
+  const habit = await setHabitSkip(req.userId!, habitId, date, skipped);
+  sendSuccess(res, 200, { habit });
 });
 
 export const logsInRange = asyncHandler(async (req, res) => {

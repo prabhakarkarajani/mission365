@@ -34,6 +34,7 @@ const habitLogSchema = new Schema(
     date: { type: String, required: true }, // 'YYYY-MM-DD'
     completed: { type: Boolean, default: true },
     completedAt: { type: Date, default: null },
+    skipped: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

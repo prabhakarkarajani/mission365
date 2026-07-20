@@ -71,7 +71,7 @@ export async function setHabitCompletion(
   if (completed) {
     await HabitLog.updateOne(
       { habitId: habit.id, date },
-      { $set: { completed: true, completedAt: new Date(), userId } },
+      { $set: { completed: true, completedAt: new Date(), skipped: false, userId } },
       { upsert: true }
     );
   } else {
@@ -99,15 +99,35 @@ export async function setHabitCompletion(
   return { habit, unlockedAchievements };
 }
 
+export async function setHabitSkip(userId: string, habitId: string, date: string, skipped: boolean) {
+  const habit = await findOwnedHabit(userId, habitId);
+
+  if (skipped) {
+    await HabitLog.updateOne(
+      { habitId: habit.id, date },
+      { $set: { completed: false, completedAt: null, skipped: true, userId } },
+      { upsert: true }
+    );
+  } else {
+    await HabitLog.deleteOne({ habitId: habit.id, date, skipped: true });
+  }
+
+  return habit;
+}
+
 export async function getTodayOverview(userId: string, date: string = todayKey()) {
   const habits = await Habit.find({ userId, isArchived: false }).sort({ createdAt: 1 });
-  const logs = await HabitLog.find({ userId, date, completed: true }).select('habitId').lean();
-  const completedIds = new Set(logs.map((l) => l.habitId.toString()));
+  const logs = await HabitLog.find({ userId, date }).select('habitId completed skipped').lean();
+  const logByHabit = new Map(logs.map((l) => [l.habitId.toString(), l]));
 
-  return habits.map((habit) => ({
-    habit,
-    completed: completedIds.has(habit.id),
-  }));
+  return habits.map((habit) => {
+    const log = logByHabit.get(habit.id);
+    return {
+      habit,
+      completed: log?.completed ?? false,
+      skipped: log?.skipped ?? false,
+    };
+  });
 }
 
 export async function getHabitLogsInRange(userId: string, startDate: string, endDate: string) {

@@ -11,6 +11,8 @@ import {
   remove,
   toggleCompletion,
   toggleCompletionSchema,
+  toggleSkip,
+  toggleSkipSchema,
   update,
   updateHabitSchema,
 } from '../controllers/habit.controller';
@@ -32,4 +34,9 @@ habitRouter.post(
   '/:habitId/completion',
   validate({ params: habitIdParamSchema, body: toggleCompletionSchema }),
   toggleCompletion
+);
+habitRouter.post(
+  '/:habitId/skip',
+  validate({ params: habitIdParamSchema, body: toggleSkipSchema }),
+  toggleSkip
 );
