@@ -16,10 +16,20 @@ export const createGoalSchema = z.object({
   category: z.string().optional(),
   icon: z.string().optional(),
   color: z.string().optional(),
+  dreamId: z.string().min(1).nullable().optional(),
+  importance: z.number().int().min(1).max(5).optional(),
   targetValue: z.number().positive(),
   unit: z.string().optional(),
   deadline: z.string().nullable().optional(),
-  milestones: z.array(z.object({ title: z.string().trim().min(1) })).optional(),
+  milestones: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1),
+        order: z.number().int().min(0).optional(),
+        targetDate: z.string().nullable().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const updateGoalSchema = createGoalSchema.partial();

@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (typecheck, lint, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  frontend:
+    name: Frontend (typecheck, lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+
+      # .expo/ is gitignored, so a fresh checkout has no generated Expo
+      # Router types (.expo/types/router.d.ts) — `tsc` would fail on every
+      # router.push() as soon as a route is added. `expo start` writes
+      # that file shortly after Metro boots; poll for it, then stop the
+      # dev server before continuing.
+      - name: Generate Expo Router types
+        run: |
+          npx expo start --web --non-interactive &
+          EXPO_PID=$!
+          for i in $(seq 1 30); do
+            if [ -s .expo/types/router.d.ts ] && grep -q "declare module 'expo-router'" .expo/types/router.d.ts; then
+              break
+            fi
+            sleep 2
+          done
+          kill "$EXPO_PID" 2>/dev/null || true
+          test -s .expo/types/router.d.ts
+
+      - run: npm run typecheck
+      - run: npm run lint

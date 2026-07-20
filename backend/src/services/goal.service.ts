@@ -9,10 +9,12 @@ export interface CreateGoalInput {
   category?: string;
   icon?: string;
   color?: string;
+  dreamId?: string | null;
+  importance?: number;
   targetValue: number;
   unit?: string;
   deadline?: string | null;
-  milestones?: Array<{ title: string }>;
+  milestones?: Array<{ title: string; order?: number; targetDate?: string | null }>;
 }
 
 export async function listGoals(userId: string, status?: string) {
@@ -30,14 +32,20 @@ async function findOwnedGoal(userId: string, goalId: string) {
 export async function createGoal(userId: string, input: CreateGoalInput) {
   return Goal.create({
     userId,
+    dreamId: input.dreamId ?? null,
     title: input.title,
     category: input.category,
     icon: input.icon,
     color: input.color,
+    importance: input.importance,
     targetValue: input.targetValue,
     unit: input.unit,
     deadline: input.deadline ?? null,
-    milestones: input.milestones ?? [],
+    milestones: (input.milestones ?? []).map((milestone, index) => ({
+      title: milestone.title,
+      order: milestone.order ?? index,
+      targetDate: milestone.targetDate ?? null,
+    })),
   });
 }
 
