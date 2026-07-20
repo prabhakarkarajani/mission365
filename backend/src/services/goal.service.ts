@@ -1,6 +1,8 @@
+import { eventBus } from '../lib/eventBus';
 import { Goal } from '../models/Goal';
 import { ApiError } from '../utils/ApiError';
 import { awardXp, checkAndUnlockAchievements, recordActivity } from './gamification.service';
+import { findOwnedDream } from './dream.service';
 
 const XP_PER_GOAL_COMPLETION = 150;
 
@@ -30,7 +32,11 @@ async function findOwnedGoal(userId: string, goalId: string) {
 }
 
 export async function createGoal(userId: string, input: CreateGoalInput) {
-  return Goal.create({
+  if (input.dreamId) {
+    await findOwnedDream(userId, input.dreamId);
+  }
+
+  const goal = await Goal.create({
     userId,
     dreamId: input.dreamId ?? null,
     title: input.title,
@@ -47,9 +53,21 @@ export async function createGoal(userId: string, input: CreateGoalInput) {
       targetDate: milestone.targetDate ?? null,
     })),
   });
+
+  eventBus.emit('goal.created', {
+    goalId: goal.id as string,
+    userId,
+    source: input.dreamId ? 'dream_conversion' : 'manual',
+  });
+
+  return goal;
 }
 
 export async function updateGoal(userId: string, goalId: string, input: Partial<CreateGoalInput>) {
+  if (input.dreamId) {
+    await findOwnedDream(userId, input.dreamId);
+  }
+
   const goal = await findOwnedGoal(userId, goalId);
   Object.assign(goal, input);
   await goal.save();

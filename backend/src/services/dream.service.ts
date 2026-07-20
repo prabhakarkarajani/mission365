@@ -17,7 +17,7 @@ export async function listDreams(userId: string, status?: string) {
   return Dream.find({ userId, ...(status ? { status } : {}) }).sort({ createdAt: -1 });
 }
 
-async function findOwnedDream(userId: string, dreamId: string) {
+export async function findOwnedDream(userId: string, dreamId: string) {
   const dream = await Dream.findOne({ _id: dreamId, userId });
   if (!dream) {
     throw ApiError.notFound('Dream not found');
