@@ -134,3 +134,16 @@ export function useToggleHabitCompletion() {
     },
   });
 }
+
+// API-only (see ADR-002) - "Not Today" isn't part of the offline SQLite
+// pilot yet, so this always hits the network regardless of platform,
+// unlike useToggleHabitCompletion above.
+export function useToggleHabitSkip() {
+  const invalidate = useInvalidateAfterHabitChange();
+
+  return useMutation({
+    mutationFn: ({ habitId, date, skipped }: { habitId: string; date: string; skipped: boolean }) =>
+      habitApi.setHabitSkip(habitId, date, skipped),
+    onSuccess: invalidate,
+  });
+}

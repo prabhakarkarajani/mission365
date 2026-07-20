@@ -67,7 +67,9 @@ export async function getLocalTodayMissions(date: string = todayKey()): Promise<
     [date]
   );
   const completedIds = new Set(completedRows.map((r) => r.habit_id));
-  return habits.map((habit) => ({ habit, completed: completedIds.has(habit._id) }));
+  // "Not Today" is API-only for now (see ADR-002) - the offline SQLite
+  // pilot doesn't track skips yet, so native-offline always reports false.
+  return habits.map((habit) => ({ habit, completed: completedIds.has(habit._id), skipped: false }));
 }
 
 async function recomputeStreak(habitId: string): Promise<number> {

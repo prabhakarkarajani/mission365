@@ -9,28 +9,17 @@ export type MissionType =
 
 export type MissionPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'OPTIONAL';
 
-export type MissionStatus =
-  | 'UPCOMING'
-  | 'PENDING'
-  | 'COMPLETED'
-  | 'SKIPPED'
-  | 'POSTPONED'
-  | 'EXPIRED'
-  | 'CANCELLED';
-
-export interface MissionRecurrence {
-  type: 'daily' | 'weekly' | 'custom';
-  daysOfWeek: number[];
-}
-
+/**
+ * A client-side projection over a mission's backing source (Habit today;
+ * see ADR-002, docs/adr/0002-mission-projection-over-habit.md). Not a
+ * persisted entity - `id` is always the backing source's own id.
+ */
 export interface Mission {
   id: string;
   title: string;
-  type: MissionType;
-  priority: MissionPriority;
-  status: MissionStatus;
-  reminderTime: string | null;
-  recurrence?: MissionRecurrence;
-  /** Present when this Mission is a view over an existing Habit record. */
-  sourceHabitId?: string;
+  missionType: MissionType;
+  /** The backing entity's id in its origin system (a Habit's _id today). */
+  source: string;
+  completedToday: boolean;
+  skippedToday: boolean;
 }

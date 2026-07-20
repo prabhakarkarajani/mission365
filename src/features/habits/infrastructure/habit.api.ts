@@ -48,3 +48,7 @@ export function setHabitCompletion(habitId: string, date: string, completed: boo
     { date, completed }
   );
 }
+
+export function setHabitSkip(habitId: string, date: string, skipped: boolean) {
+  return api.post<{ habit: Habit }>(`/habits/${habitId}/skip`, { date, skipped });
+}

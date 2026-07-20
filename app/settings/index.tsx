@@ -51,6 +51,19 @@ export default function SettingsScreen() {
       <ScrollView contentContainerClassName="gap-5 px-6 pb-8">
         <View className="gap-2">
           <Text variant="bodySmall" color="muted">
+            Daily
+          </Text>
+          <Card>
+            <SettingRow
+              label="Today"
+              description="See today's missions and progress"
+              onPress={() => router.push('/today')}
+            />
+          </Card>
+        </View>
+
+        <View className="gap-2">
+          <Text variant="bodySmall" color="muted">
             AI
           </Text>
           <Card>

@@ -1,22 +1,19 @@
-import type { Habit } from '@/features/habits/domain/types';
+import type { TodayMission } from '@/features/habits/domain/types';
 import type { Mission } from '../types/mission.types';
 
 /**
- * Maps an existing Habit onto the new Mission abstraction. One-directional:
- * Habit stays the source of truth and nothing writes back through Mission yet.
+ * Maps a Habit's today-instance onto the Mission projection (see ADR-002).
+ * One-directional: Habit stays the source of truth and mutations delegate
+ * back to it via useMissionActions(), not through this function.
  */
-export function habitToMission(habit: Habit): Mission {
+export function habitToMission(todayMission: TodayMission): Mission {
+  const { habit } = todayMission;
   return {
     id: habit._id,
     title: habit.name,
-    type: 'HABIT',
-    priority: 'MEDIUM',
-    status: habit.isArchived ? 'CANCELLED' : 'UPCOMING',
-    reminderTime: habit.reminderTime,
-    recurrence: {
-      type: habit.frequency.type,
-      daysOfWeek: habit.frequency.daysOfWeek,
-    },
-    sourceHabitId: habit._id,
+    missionType: 'HABIT',
+    source: habit._id,
+    completedToday: todayMission.completed,
+    skippedToday: todayMission.skipped,
   };
 }

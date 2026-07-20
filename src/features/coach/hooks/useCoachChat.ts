@@ -28,9 +28,13 @@ function useCoachContext(): CoachContext {
       deadline: g.deadline,
       percentComplete: g.targetValue > 0 ? Math.min(100, (g.currentValue / g.targetValue) * 100) : 0,
     })),
-    missions: (today?.missions ?? []).map(({ habit, completed }) => {
-      const mission = habitToMission(habit);
-      return { title: mission.title, type: mission.type, priority: mission.priority, completed };
+    missions: (today?.missions ?? []).map((todayMission) => {
+      const mission = habitToMission(todayMission);
+      // priority is a static placeholder, not real prioritization (out of
+      // scope - see ADR-002) - it was always 'MEDIUM' before the Mission
+      // projection dropped the field, so it stays a constant here rather
+      // than disappearing from the AI context's existing shape.
+      return { title: mission.title, type: mission.missionType, priority: 'MEDIUM', completed: mission.completedToday };
     }),
   };
 }

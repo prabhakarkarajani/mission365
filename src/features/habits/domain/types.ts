@@ -25,6 +25,7 @@ export interface Habit {
 export interface TodayMission {
   habit: Habit;
   completed: boolean;
+  skipped: boolean;
 }
 
 export interface HabitLogEntry {
