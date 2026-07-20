@@ -64,6 +64,19 @@ export default function SettingsScreen() {
 
         <View className="gap-2">
           <Text variant="bodySmall" color="muted">
+            Journey
+          </Text>
+          <Card>
+            <SettingRow
+              label="Dreams"
+              description="The bigger picture behind your goals"
+              onPress={() => router.push('/dreams')}
+            />
+          </Card>
+        </View>
+
+        <View className="gap-2">
+          <Text variant="bodySmall" color="muted">
             Appearance
           </Text>
           <Card>
