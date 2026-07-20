@@ -4,15 +4,18 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Badge, Button, Card, Input, ModalHeader, Text } from '@/shared/ui';
+import { Badge, Button, Card, Input, ModalHeader, ProgressBar, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { asIoniconName } from '@/shared/lib/icon-name';
 import { useDeleteDream, useDreams, useUpdateDream } from '@/features/dreams/hooks/dream.hooks';
+import { useGoals } from '@/features/goals/application/goal.hooks';
 
 export default function DreamDetailScreen() {
   const { dreamId } = useLocalSearchParams<{ dreamId: string }>();
   const { data: dreams } = useDreams();
   const dream = dreams?.find((d) => d._id === dreamId);
+  const { data: goals } = useGoals();
+  const linkedGoals = goals?.filter((g) => g.dreamId === dreamId) ?? [];
   const updateDream = useUpdateDream();
   const deleteDream = useDeleteDream();
 
@@ -115,6 +118,41 @@ export default function DreamDetailScreen() {
             ) : null}
           </View>
         )}
+
+        {!isEditing && dream.status === 'active' ? (
+          <Button
+            label="Convert to Goal"
+            variant="primary"
+            onPress={() => router.push({ pathname: '/goals/new', params: { dreamId: dream._id } })}
+          />
+        ) : null}
+
+        {linkedGoals.length > 0 ? (
+          <View className="gap-2">
+            <Text variant="bodySmall" color="muted">
+              Goals under this Dream
+            </Text>
+            <Card className="gap-4">
+              {linkedGoals.map((goal) => {
+                const percent =
+                  goal.targetValue > 0 ? Math.min(100, (goal.currentValue / goal.targetValue) * 100) : 0;
+                return (
+                  <View key={goal._id} className="gap-1.5">
+                    <View className="flex-row items-center justify-between">
+                      <Text variant="body" numberOfLines={1} className="flex-1 pr-2">
+                        {goal.title}
+                      </Text>
+                      <Text variant="caption" color="muted">
+                        {Math.round(percent)}%
+                      </Text>
+                    </View>
+                    <ProgressBar percent={percent} color={goal.color} />
+                  </View>
+                );
+              })}
+            </Card>
+          </View>
+        ) : null}
 
         <Card className="gap-3">
           <Button

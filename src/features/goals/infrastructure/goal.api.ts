@@ -8,6 +8,7 @@ export interface CreateGoalInput {
   category?: string;
   icon?: string;
   color?: string;
+  dreamId?: string | null;
   targetValue: number;
   unit?: string;
   deadline?: string | null;

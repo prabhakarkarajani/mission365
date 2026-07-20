@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pressable, ScrollView, View } from 'react-native';
@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { Button, Input, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useCreateGoal } from '@/features/goals/application/goal.hooks';
+import { useDreams } from '@/features/dreams/hooks/dream.hooks';
 
 const goalSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(160),
@@ -24,6 +25,10 @@ const goalSchema = z.object({
 type GoalForm = z.infer<typeof goalSchema>;
 
 export default function NewGoalScreen() {
+  const { dreamId } = useLocalSearchParams<{ dreamId?: string }>();
+  const { data: dreams } = useDreams();
+  const dream = dreamId ? dreams?.find((d) => d._id === dreamId) : undefined;
+
   const createGoal = useCreateGoal();
   const [serverError, setServerError] = useState<string | null>(null);
   const [milestones, setMilestones] = useState<string[]>([]);
@@ -56,6 +61,7 @@ export default function NewGoalScreen() {
         title: values.title,
         targetValue: Number(values.targetValue),
         unit: values.unit,
+        dreamId: dreamId ?? undefined,
         milestones: milestones.map((title) => ({ title })),
       });
       router.back();
@@ -69,6 +75,12 @@ export default function NewGoalScreen() {
       <Stack.Screen options={{ headerShown: false, presentation: 'modal' }} />
       <ModalHeader title="New Goal" />
       <ScrollView contentContainerClassName="gap-5 px-6 pb-8" keyboardShouldPersistTaps="handled">
+        {dreamId ? (
+          <Text variant="bodySmall" color="muted">
+            Converting your dream{dream ? ` "${dream.title}"` : ''} into your first goal.
+          </Text>
+        ) : null}
+
         <Controller
           control={control}
           name="title"

@@ -10,6 +10,7 @@ export interface Milestone {
 export interface Goal {
   _id: string;
   userId: string;
+  dreamId: string | null;
   title: string;
   category: string;
   icon: string;
