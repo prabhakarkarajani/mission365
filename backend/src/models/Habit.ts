@@ -19,6 +19,11 @@ const habitSchema = new Schema(
     currentStreak: { type: Number, default: 0 },
     longestStreak: { type: Number, default: 0 },
     isArchived: { type: Boolean, default: false, index: true },
+    goalId: { type: Schema.Types.ObjectId, ref: 'Goal', default: null, index: true },
+    // Addresses a subdocument inside Goal.milestones (ADR-001) - not a
+    // top-level ref. Data-model-only until the Path experience ships;
+    // no UI sets this yet (see ADR-003).
+    milestoneId: { type: Schema.Types.ObjectId, default: null },
   },
   { timestamps: true }
 );

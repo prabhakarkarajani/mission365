@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
 
 import { clearTestDatabase, connectTestDatabase, disconnectTestDatabase } from '../test/mongoMemory';
-import { createHabit, getTodayOverview, setHabitCompletion, setHabitSkip } from './habit.service';
+import { createHabit, getTodayOverview, setHabitCompletion, setHabitSkip, updateHabit } from './habit.service';
+import { createGoal } from './goal.service';
 
 beforeAll(connectTestDatabase);
 afterEach(clearTestDatabase);
@@ -57,6 +58,91 @@ describe('habit.service setHabitSkip', () => {
   it('rejects skipping a habit owned by a different user', async () => {
     const habit = await createHabit(new Types.ObjectId().toString(), { name: 'Not yours' });
     await expect(setHabitSkip(userId, habit.id, date, true)).rejects.toThrow();
+  });
+});
+
+describe('habit.service Goal/Milestone linkage', () => {
+  it('creates a habit linked to an owned goal', async () => {
+    const goal = await createGoal(userId, { title: 'Run a 10k', targetValue: 10 });
+    const habit = await createHabit(userId, { name: 'Run', goalId: goal.id });
+    expect(habit.goalId?.toString()).toBe(goal.id);
+    expect(habit.milestoneId).toBeNull();
+  });
+
+  it('creates a habit linked to a specific milestone within an owned goal', async () => {
+    const goal = await createGoal(userId, {
+      title: 'Run a 10k',
+      targetValue: 10,
+      milestones: [{ title: 'Run 5k' }],
+    });
+    const milestoneId = goal.milestones[0].id as string;
+    const habit = await createHabit(userId, { name: 'Run', goalId: goal.id, milestoneId });
+    expect(habit.goalId?.toString()).toBe(goal.id);
+    expect(habit.milestoneId?.toString()).toBe(milestoneId);
+  });
+
+  it('rejects a goalId that does not belong to any goal', async () => {
+    const goalId = new Types.ObjectId().toString();
+    await expect(createHabit(userId, { name: 'Run', goalId })).rejects.toThrow();
+  });
+
+  it('rejects a goalId owned by a different user', async () => {
+    const otherUsersGoal = await createGoal(new Types.ObjectId().toString(), {
+      title: 'Not yours',
+      targetValue: 10,
+    });
+    await expect(createHabit(userId, { name: 'Run', goalId: otherUsersGoal.id })).rejects.toThrow();
+  });
+
+  it('rejects a milestoneId supplied without a goalId', async () => {
+    const milestoneId = new Types.ObjectId().toString();
+    await expect(createHabit(userId, { name: 'Run', milestoneId })).rejects.toThrow();
+  });
+
+  it('rejects a milestoneId that does not belong to the given goal', async () => {
+    const goal = await createGoal(userId, { title: 'Run a 10k', targetValue: 10 });
+    const milestoneId = new Types.ObjectId().toString();
+    await expect(createHabit(userId, { name: 'Run', goalId: goal.id, milestoneId })).rejects.toThrow();
+  });
+
+  it('allows updateHabit to clear an existing goal link to null', async () => {
+    const goal = await createGoal(userId, { title: 'Run a 10k', targetValue: 10 });
+    const habit = await createHabit(userId, { name: 'Run', goalId: goal.id });
+
+    const updated = await updateHabit(userId, habit.id, { goalId: null });
+
+    expect(updated.goalId).toBeNull();
+  });
+
+  it('rejects updateHabit setting an unowned goalId', async () => {
+    const habit = await createHabit(userId, { name: 'Run' });
+    const otherUsersGoal = await createGoal(new Types.ObjectId().toString(), {
+      title: 'Not yours',
+      targetValue: 10,
+    });
+
+    await expect(updateHabit(userId, habit.id, { goalId: otherUsersGoal.id })).rejects.toThrow();
+  });
+
+  it('validates a milestoneId-only update against the habit\'s existing goalId', async () => {
+    const goal = await createGoal(userId, {
+      title: 'Run a 10k',
+      targetValue: 10,
+      milestones: [{ title: 'Run 5k' }],
+    });
+    const milestoneId = goal.milestones[0].id as string;
+    const habit = await createHabit(userId, { name: 'Run', goalId: goal.id });
+
+    const updated = await updateHabit(userId, habit.id, { milestoneId });
+
+    expect(updated.milestoneId?.toString()).toBe(milestoneId);
+  });
+
+  it('rejects a milestoneId-only update when the habit has no existing goalId', async () => {
+    const habit = await createHabit(userId, { name: 'Run' });
+    const milestoneId = new Types.ObjectId().toString();
+
+    await expect(updateHabit(userId, habit.id, { milestoneId })).rejects.toThrow();
   });
 });
 

@@ -1,4 +1,5 @@
 import { eventBus } from '../lib/eventBus';
+import { Habit } from '../models/Habit';
 import { Goal } from '../models/Goal';
 import { ApiError } from '../utils/ApiError';
 import { awardXp, checkAndUnlockAchievements, recordActivity } from './gamification.service';
@@ -23,7 +24,7 @@ export async function listGoals(userId: string, status?: string) {
   return Goal.find({ userId, ...(status ? { status } : {}) }).sort({ createdAt: -1 });
 }
 
-async function findOwnedGoal(userId: string, goalId: string) {
+export async function findOwnedGoal(userId: string, goalId: string) {
   const goal = await Goal.findOne({ _id: goalId, userId });
   if (!goal) {
     throw ApiError.notFound('Goal not found');
@@ -76,6 +77,10 @@ export async function updateGoal(userId: string, goalId: string, input: Partial<
 
 export async function deleteGoal(userId: string, goalId: string) {
   const goal = await findOwnedGoal(userId, goalId);
+  // Sever, don't cascade-delete (ADR-003): a Habit outlives the Goal it
+  // was linked to. Direct + synchronous, not via the event bus - this
+  // must be true before the delete is considered done, not eventually.
+  await Habit.updateMany({ goalId: goal.id }, { $set: { goalId: null, milestoneId: null } });
   await goal.deleteOne();
 }
 

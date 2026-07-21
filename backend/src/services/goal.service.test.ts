@@ -2,8 +2,10 @@ import { Types } from 'mongoose';
 
 import { eventBus } from '../lib/eventBus';
 import { clearTestDatabase, connectTestDatabase, disconnectTestDatabase } from '../test/mongoMemory';
-import { createGoal, updateGoal } from './goal.service';
+import { createGoal, deleteGoal, updateGoal } from './goal.service';
 import { createDream } from './dream.service';
+import { createHabit } from './habit.service';
+import { Habit } from '../models/Habit';
 
 beforeAll(connectTestDatabase);
 afterEach(clearTestDatabase);
@@ -126,5 +128,34 @@ describe('goal.service updateGoal', () => {
 
     expect(updated.category).toBe('skill');
     expect(updated.title).toBe('Learn piano');
+  });
+});
+
+describe('goal.service deleteGoal', () => {
+  it('severs linked habits\' goalId/milestoneId instead of leaving a dangling reference', async () => {
+    const goal = await createGoal(userId, {
+      title: 'Learn piano',
+      targetValue: 20,
+      milestones: [{ title: 'Learn scales' }],
+    });
+    const milestoneId = goal.milestones[0].id as string;
+    const habit = await createHabit(userId, { name: 'Practice scales', goalId: goal.id, milestoneId });
+
+    await deleteGoal(userId, goal.id);
+
+    const reloaded = await Habit.findById(habit.id);
+    expect(reloaded!.goalId).toBeNull();
+    expect(reloaded!.milestoneId).toBeNull();
+  });
+
+  it('does not affect habits linked to a different goal', async () => {
+    const goal = await createGoal(userId, { title: 'Learn piano', targetValue: 20 });
+    const otherGoal = await createGoal(userId, { title: 'Run a 10k', targetValue: 10 });
+    const habit = await createHabit(userId, { name: 'Run', goalId: otherGoal.id });
+
+    await deleteGoal(userId, goal.id);
+
+    const reloaded = await Habit.findById(habit.id);
+    expect(reloaded!.goalId?.toString()).toBe(otherGoal.id);
   });
 });

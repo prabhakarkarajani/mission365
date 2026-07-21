@@ -28,6 +28,8 @@ export const createHabitSchema = z.object({
   color: z.string().optional(),
   frequency: frequencySchema.optional(),
   reminderTime: z.string().nullable().optional(),
+  goalId: z.string().min(1).nullable().optional(),
+  milestoneId: z.string().min(1).nullable().optional(),
 });
 
 export const updateHabitSchema = createHabitSchema.partial();
