@@ -46,6 +46,13 @@ function rowToHabit(row: HabitRow): Habit {
     currentStreak: row.current_streak,
     longestStreak: row.longest_streak,
     isArchived: row.is_archived === 1,
+    // Goal/Milestone linkage is API-only for now (ADR-003) - the offline
+    // SQLite pilot doesn't have columns for it yet, same boundary as
+    // "Not Today" in Sprint 4. A linked habit created/edited on native
+    // still reaches the server correctly via the sync queue's opaque
+    // JSON payload; it just won't read back here until that's extended.
+    goalId: null,
+    milestoneId: null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

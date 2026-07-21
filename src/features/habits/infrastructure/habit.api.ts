@@ -10,6 +10,10 @@ export interface CreateHabitInput {
   color?: string;
   frequency?: { type?: HabitFrequencyType; daysOfWeek?: number[] };
   reminderTime?: string | null;
+  goalId?: string | null;
+  // Data-model-only until the Path experience ships - no UI sets this
+  // yet (ADR-003).
+  milestoneId?: string | null;
 }
 
 export type UpdateHabitInput = Partial<CreateHabitInput>;

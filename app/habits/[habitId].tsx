@@ -14,6 +14,7 @@ import type { HabitCategory } from '@/features/habits/domain/types';
 import { recurrenceLabel } from '@/features/habits/domain/recurrence';
 import { WorkoutSuggestions } from '@/features/habits/presentation/WorkoutSuggestions';
 import { getMissionPresentation, PRIORITY_COLOR } from '@/features/home/domain/missionPresentation';
+import { useGoals } from '@/features/goals/application/goal.hooks';
 
 const CATEGORIES: { value: HabitCategory; label: string }[] = [
   { value: 'morning', label: 'Morning' },
@@ -59,8 +60,10 @@ export default function EditHabitScreen() {
   const { habitId } = useLocalSearchParams<{ habitId: string }>();
   const { data: habits } = useHabits();
   const habit = habits?.find((h) => h._id === habitId);
+  const { data: goals } = useGoals('active');
   const updateHabit = useUpdateHabit();
   const deleteHabit = useDeleteHabit();
+  const [goalId, setGoalId] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -84,6 +87,7 @@ export default function EditHabitScreen() {
         color: habit.color,
         reminderTime: habit.reminderTime ?? '',
       });
+      setGoalId(habit.goalId);
     }
   }, [habit, reset]);
 
@@ -95,6 +99,7 @@ export default function EditHabitScreen() {
     if (!habit) return;
     setServerError(null);
     try {
+      const goalChanged = goalId !== habit.goalId;
       await updateHabit.mutateAsync({
         habitId: habit._id,
         input: {
@@ -103,6 +108,12 @@ export default function EditHabitScreen() {
           icon: values.icon,
           color: values.color,
           reminderTime: values.reminderTime || null,
+          goalId,
+          // This picker has no way to manage a specific milestone link,
+          // so changing the goal resets it (ADR-003) - only touched
+          // when the goal actually changes, so unrelated edits never
+          // clear a milestone link set elsewhere.
+          ...(goalChanged ? { milestoneId: null } : {}),
         },
       });
       router.back();
@@ -218,6 +229,25 @@ export default function EditHabitScreen() {
             ))}
           </View>
         </View>
+
+        {goals && goals.length > 0 ? (
+          <View className="gap-2">
+            <Text variant="bodySmall" color="muted">
+              Goal (optional)
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              <Chip label="None" selected={goalId === null} onPress={() => setGoalId(null)} />
+              {goals.map((goal) => (
+                <Chip
+                  key={goal._id}
+                  label={goal.title}
+                  selected={goalId === goal._id}
+                  onPress={() => setGoalId(goal._id)}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
 
         {selectedIcon === 'barbell-outline' ? <WorkoutSuggestions /> : null}
 

@@ -15,5 +15,7 @@ export function habitToMission(todayMission: TodayMission): Mission {
     source: habit._id,
     completedToday: todayMission.completed,
     skippedToday: todayMission.skipped,
+    goalId: habit.goalId,
+    milestoneId: habit.milestoneId,
   };
 }

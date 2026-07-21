@@ -18,6 +18,8 @@ export interface Habit {
   currentStreak: number;
   longestStreak: number;
   isArchived: boolean;
+  goalId: string | null;
+  milestoneId: string | null;
   createdAt: string;
   updatedAt: string;
 }

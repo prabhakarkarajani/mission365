@@ -22,4 +22,7 @@ export interface Mission {
   source: string;
   completedToday: boolean;
   skippedToday: boolean;
+  /** Traceable Purpose (ADR-003) - which Goal/Milestone this traces to, if any. */
+  goalId: string | null;
+  milestoneId: string | null;
 }

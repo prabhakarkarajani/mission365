@@ -13,6 +13,7 @@ import { useCreateHabit } from '@/features/habits/application/habit.hooks';
 import type { HabitCategory } from '@/features/habits/domain/types';
 import { WorkoutSuggestions } from '@/features/habits/presentation/WorkoutSuggestions';
 import { getMissionPresentation, PRIORITY_COLOR } from '@/features/home/domain/missionPresentation';
+import { useGoals } from '@/features/goals/application/goal.hooks';
 
 const CATEGORIES: { value: HabitCategory; label: string }[] = [
   { value: 'morning', label: 'Morning' },
@@ -56,6 +57,8 @@ type HabitForm = z.infer<typeof habitSchema>;
 
 export default function NewHabitScreen() {
   const createHabit = useCreateHabit();
+  const { data: goals } = useGoals('active');
+  const [goalId, setGoalId] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -82,6 +85,7 @@ export default function NewHabitScreen() {
         icon: values.icon,
         color: values.color,
         reminderTime: values.reminderTime || null,
+        goalId,
       });
       router.back();
     } catch {
@@ -173,6 +177,25 @@ export default function NewHabitScreen() {
             ))}
           </View>
         </View>
+
+        {goals && goals.length > 0 ? (
+          <View className="gap-2">
+            <Text variant="bodySmall" color="muted">
+              Goal (optional)
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              <Chip label="None" selected={goalId === null} onPress={() => setGoalId(null)} />
+              {goals.map((goal) => (
+                <Chip
+                  key={goal._id}
+                  label={goal.title}
+                  selected={goalId === goal._id}
+                  onPress={() => setGoalId(goal._id)}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
 
         {selectedIcon === 'barbell-outline' ? <WorkoutSuggestions /> : null}
 
