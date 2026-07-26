@@ -1,61 +1,30 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { useAuthStore } from '@/features/auth/application/auth.store';
-import { useGoals } from '@/features/goals/application/goal.hooks';
-import { useTodayMissions } from '@/features/habits/application/habit.hooks';
-import { habitToMission } from '@/features/missions/services/habitMissionMapper';
-import type { CoachContext } from '@/ai';
-
+import { sendChatMessage } from '../infrastructure/coach.api';
 import { useCoachChatStore } from '../application/chat.store';
-import { chatWithCoach } from '../services/coach.service';
+import type { Mood } from '../domain/coach.types';
 
-function useCoachContext(): CoachContext {
-  const user = useAuthStore((s) => s.user);
-  const { data: goals } = useGoals('active');
-  const { data: today } = useTodayMissions();
-
-  return {
-    userName: user?.name?.split(' ')[0],
-    level: user?.level,
-    xp: user?.xp,
-    currentStreak: user?.currentStreak,
-    goals: (goals ?? []).map((g) => ({
-      title: g.title,
-      category: g.category,
-      currentValue: g.currentValue,
-      targetValue: g.targetValue,
-      unit: g.unit,
-      deadline: g.deadline,
-      percentComplete: g.targetValue > 0 ? Math.min(100, (g.currentValue / g.targetValue) * 100) : 0,
-    })),
-    missions: (today?.missions ?? []).map((todayMission) => {
-      const mission = habitToMission(todayMission);
-      // priority is a static placeholder, not real prioritization (out of
-      // scope - see ADR-002) - it was always 'MEDIUM' before the Mission
-      // projection dropped the field, so it stays a constant here rather
-      // than disappearing from the AI context's existing shape.
-      return { title: mission.title, type: mission.missionType, priority: 'MEDIUM', completed: mission.completedToday };
-    }),
-  };
+interface SendMessageOptions {
+  cardId?: string;
+  mood?: Mood;
 }
 
 export function useCoachChat() {
   const messages = useCoachChatStore((s) => s.messages);
   const addMessage = useCoachChatStore((s) => s.addMessage);
   const clear = useCoachChatStore((s) => s.clear);
-  const context = useCoachContext();
 
   const mutation = useMutation({
-    mutationFn: (userText: string) => {
-      addMessage({ role: 'user', content: userText });
-      const history = [...messages, { role: 'user' as const, content: userText }].map((m) => ({
+    mutationFn: ({ text, cardId, mood }: { text: string } & SendMessageOptions) => {
+      addMessage({ role: 'user', content: text });
+      const history = [...messages, { role: 'user' as const, content: text }].map((m) => ({
         role: m.role,
         content: m.content,
       }));
-      return chatWithCoach({ messages: history, context });
+      return sendChatMessage({ messages: history, cardId, mood });
     },
     onSuccess: (response) => {
-      addMessage({ role: 'assistant', content: response.message });
+      addMessage({ role: 'assistant', content: response.reply.content });
     },
     onError: () => {
       addMessage({
@@ -65,9 +34,12 @@ export function useCoachChat() {
     },
   });
 
+  const sendMessage = (text: string, options?: SendMessageOptions) =>
+    mutation.mutate({ text, cardId: options?.cardId, mood: options?.mood });
+
   return {
     messages,
-    sendMessage: mutation.mutate,
+    sendMessage,
     isSending: mutation.isPending,
     clear,
   };

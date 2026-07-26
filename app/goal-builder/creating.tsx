@@ -11,7 +11,7 @@ import { useCreateGoal } from '@/features/goals/application/goal.hooks';
 import { useCreateHabit } from '@/features/habits/application/habit.hooks';
 import { getGoalCategory } from '@/features/goals/domain/categories';
 import type { HabitCategory } from '@/features/habits/domain/types';
-import type { PreferredWorkingHours } from '@/ai';
+import type { PreferredWorkingHours } from '@/features/roadmaps/types/roadmap.types';
 
 const CATEGORY_TO_HABIT: Record<string, HabitCategory> = {
   health: 'health',

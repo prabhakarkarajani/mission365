@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Chip, DatePickerInput, Input, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useGoalBuilderStore } from '@/features/goals/application/goalBuilder.store';
-import type { DailyTimeBudget, GoalCurrentLevel, PreferredWorkingHours } from '@/ai';
+import type { DailyTimeBudget, GoalCurrentLevel, PreferredWorkingHours } from '@/features/roadmaps/types/roadmap.types';
 
 const TOTAL_STEPS = 5;
 

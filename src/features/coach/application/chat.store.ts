@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { zustandStorage } from '@/shared/lib/zustand-storage';
-import type { ChatMessage } from '@/ai';
+import type { CoachMessage } from '../domain/coach.types';
 
-export interface CoachChatMessage extends ChatMessage {
+export interface CoachChatMessage extends CoachMessage {
   id: string;
   createdAt: string;
 }

@@ -6,3 +6,6 @@ process.env.NODE_ENV ??= 'test';
 process.env.MONGODB_URI ??= 'mongodb://placeholder-replaced-by-memory-server';
 process.env.JWT_ACCESS_SECRET ??= 'test-access-secret-do-not-use-in-prod';
 process.env.JWT_REFRESH_SECRET ??= 'test-refresh-secret-do-not-use-in-prod';
+// Explicit, not just relying on the default: makes "tests never call a
+// real AI vendor" a visible line rather than implicit-by-omission.
+process.env.AI_PROVIDER ??= 'mock';

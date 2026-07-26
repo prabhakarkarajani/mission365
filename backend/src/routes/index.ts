@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { achievementRouter } from './achievement.routes';
 import { analyticsRouter } from './analytics.routes';
 import { authRouter } from './auth.routes';
+import { coachRouter } from './coach.routes';
 import { dreamRouter } from './dream.routes';
 import { focusRouter } from './focus.routes';
 import { goalRouter } from './goal.routes';
@@ -14,6 +15,7 @@ import { userRouter } from './user.routes';
 export const router = Router();
 
 router.use('/auth', authRouter);
+router.use('/coach', coachRouter);
 router.use('/habits', habitRouter);
 router.use('/goals', goalRouter);
 router.use('/dreams', dreamRouter);

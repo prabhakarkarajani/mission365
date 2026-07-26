@@ -1,5 +1,19 @@
 import type { MissionPriority, MissionType } from '@/features/missions/types/mission.types';
 
+export type GoalCurrentLevel = 'beginner' | 'intermediate' | 'advanced';
+export type DailyTimeBudget = 'under_30' | '30_60' | '1_2h' | '2h_plus';
+export type PreferredWorkingHours = 'morning' | 'afternoon' | 'evening' | 'night';
+
+export interface RoadmapGenerationInput {
+  goalTitle: string;
+  goalCategory?: string;
+  targetDate?: string;
+  currentLevel?: GoalCurrentLevel;
+  dailyTimeBudget?: DailyTimeBudget;
+  preferredWorkingHours?: PreferredWorkingHours[];
+  challenges?: string[];
+}
+
 export interface RoadmapMilestone {
   title: string;
   description?: string;
@@ -30,3 +44,5 @@ export interface Roadmap {
   /** The concrete Day 0-6 missions used to seed the user's first week. */
   firstWeekMissions: SuggestedMission[];
 }
+
+export type GeneratedRoadmap = Roadmap;

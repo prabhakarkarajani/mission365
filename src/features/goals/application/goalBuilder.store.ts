@@ -7,7 +7,7 @@ import type {
   GeneratedRoadmap,
   GoalCurrentLevel,
   PreferredWorkingHours,
-} from '@/ai';
+} from '@/features/roadmaps/types/roadmap.types';
 
 interface GoalBuilderState {
   selectedCategories: string[];

@@ -28,6 +28,18 @@ const envSchema = z
     // default for local development ergonomics. The .superRefine below is
     // what stops it from ever reaching production silently.
     CORS_ORIGIN: z.string().min(1, 'CORS_ORIGIN must not be empty').default('*'),
+
+    // Which AI vendor the Coach feature (Maya) calls. Defaults to "mock" -
+    // the server works out of the box with no AI vendor configured, using a
+    // deterministic canned-response provider (see backend/src/ai/providers/
+    // mock) - this is also what CI always uses (see test/setupEnv.ts),
+    // never a real vendor. Widened as more providers are implemented.
+    AI_PROVIDER: z.enum(['mock', 'openai']).default('mock'),
+    // Required only when AI_PROVIDER=openai (checked below).
+    OPENAI_API_KEY: z.string().optional(),
+    OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+    // Per-request timeout for any AI vendor call, in milliseconds.
+    AI_REQUEST_TIMEOUT_MS: z.coerce.number().default(20_000),
   })
   .superRefine((data, ctx) => {
     // Secrets that must never collide, in every environment - not a
@@ -65,6 +77,30 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['JWT_REFRESH_SECRET'],
         message: 'JWT_REFRESH_SECRET looks like a placeholder value - set a real generated secret in production.',
+      });
+    }
+  })
+  .superRefine((data, ctx) => {
+    // A missing key for the *currently selected* AI provider is a real
+    // misconfiguration in every environment, not just production - the
+    // server would fail on the very first Coach request otherwise. Checked
+    // separately from the production-only block above since this applies
+    // everywhere.
+    if (data.AI_PROVIDER === 'openai' && !data.OPENAI_API_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['OPENAI_API_KEY'],
+        message: 'OPENAI_API_KEY is required when AI_PROVIDER=openai.',
+      });
+    }
+
+    if (data.NODE_ENV !== 'production') return;
+
+    if (data.OPENAI_API_KEY && looksLikePlaceholder(data.OPENAI_API_KEY)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['OPENAI_API_KEY'],
+        message: 'OPENAI_API_KEY looks like a placeholder value - set a real key in production.',
       });
     }
   });

@@ -113,4 +113,35 @@ describe('env validation', () => {
       loadEnvWith({ NODE_ENV: 'development', JWT_ACCESS_SECRET: 'replace-with-a-long-random-secret-000000' })
     ).not.toThrow();
   });
+
+  it('allows AI_PROVIDER to default to mock with no vendor key set', () => {
+    expect(() => loadEnvWith({ AI_PROVIDER: undefined, OPENAI_API_KEY: undefined })).not.toThrow();
+  });
+
+  it('rejects AI_PROVIDER=openai with no OPENAI_API_KEY, in any environment', () => {
+    expect(() => loadEnvWith({ AI_PROVIDER: 'openai', OPENAI_API_KEY: undefined })).toThrow();
+  });
+
+  it('accepts AI_PROVIDER=openai when OPENAI_API_KEY is set', () => {
+    expect(() =>
+      loadEnvWith({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'a-real-generated-openai-key' })
+    ).not.toThrow();
+  });
+
+  it('rejects a placeholder-looking OPENAI_API_KEY in production when AI_PROVIDER=openai', () => {
+    expect(() =>
+      loadEnvWith({
+        NODE_ENV: 'production',
+        CORS_ORIGIN: 'https://mission365.app',
+        AI_PROVIDER: 'openai',
+        OPENAI_API_KEY: 'replace-with-your-openai-key',
+      })
+    ).toThrow();
+  });
+
+  it('allows a placeholder-looking OPENAI_API_KEY outside production', () => {
+    expect(() =>
+      loadEnvWith({ NODE_ENV: 'development', AI_PROVIDER: 'openai', OPENAI_API_KEY: 'replace-with-your-openai-key' })
+    ).not.toThrow();
+  });
 });

@@ -1,9 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { generateRoadmap } from '../services/coach.service';
+import { generateRoadmapLocally } from '@/features/roadmaps/domain/generateRoadmapLocally';
+import type { RoadmapGenerationInput } from '@/features/roadmaps/types/roadmap.types';
 
 export function useGenerateRoadmap() {
   return useMutation({
-    mutationFn: generateRoadmap,
+    mutationFn: async (input: RoadmapGenerationInput) => generateRoadmapLocally(input),
   });
 }

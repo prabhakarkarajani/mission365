@@ -1,37 +1,27 @@
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Card, IconButton, Input, Text, cn } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useAuthStore } from '@/features/auth/application/auth.store';
 import { useCoachChat } from '@/features/coach/hooks/useCoachChat';
+import { useCoachSuggestions } from '@/features/coach/hooks/useCoachSuggestions';
 import { useCoachChatStore } from '@/features/coach/application/chat.store';
 import { TypingDots } from '@/features/coach/presentation/TypingDots';
-
-interface SuggestedPrompt {
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  action: 'send' | 'reschedule' | 'weekly-review';
-  prompt?: string;
-}
-
-const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
-  { label: 'Plan My Day', icon: 'sunny-outline', action: 'send' },
-  { label: 'Review Goals', icon: 'flag-outline', action: 'send' },
-  { label: 'Generate Roadmap', icon: 'map-outline', action: 'send', prompt: 'Generate a roadmap for my current goal.' },
-  { label: 'Weekly Review', icon: 'stats-chart-outline', action: 'weekly-review' },
-  { label: 'Motivate Me', icon: 'flash-outline', action: 'send' },
-  { label: 'Reschedule Mission', icon: 'time-outline', action: 'reschedule' },
-];
+import { SuggestionCard } from '@/features/coach/presentation/SuggestionCard';
+import { MoodCheckInSheet } from '@/features/coach/presentation/MoodCheckInSheet';
+import type { SuggestionCard as SuggestionCardType } from '@/features/coach/domain/coach.types';
+import type { Mood } from '@/features/journal/domain/types';
 
 export default function CoachScreen() {
   const user = useAuthStore((s) => s.user);
   const { messages, sendMessage, isSending } = useCoachChat();
+  const { data: suggestionCards } = useCoachSuggestions();
   const clearChat = useCoachChatStore((s) => s.clear);
   const [draft, setDraft] = useState('');
+  const [pendingMoodCard, setPendingMoodCard] = useState<SuggestionCardType | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   const firstName = user?.name?.split(' ')[0] ?? '';
@@ -39,24 +29,27 @@ export default function CoachScreen() {
 
   const scrollToEnd = () => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
 
-  const submit = (text: string) => {
+  const submit = (text: string, options?: { cardId?: string; mood?: Mood }) => {
     const trimmed = text.trim();
     if (!trimmed || isSending) return;
-    sendMessage(trimmed);
+    sendMessage(trimmed, options);
     setDraft('');
     scrollToEnd();
   };
 
-  const onPrompt = (prompt: SuggestedPrompt) => {
-    if (prompt.action === 'reschedule') {
-      router.push('/habits');
+  const onCardPress = (card: SuggestionCardType) => {
+    if (card.requiresMoodCheck) {
+      setPendingMoodCard(card);
       return;
     }
-    if (prompt.action === 'weekly-review') {
-      router.push('/weekly-review');
-      return;
+    submit(card.prompt, { cardId: card.id });
+  };
+
+  const onMoodSelected = (mood: Mood) => {
+    if (pendingMoodCard) {
+      submit(pendingMoodCard.prompt, { cardId: pendingMoodCard.id, mood });
     }
-    submit(prompt.prompt ?? prompt.label);
+    setPendingMoodCard(null);
   };
 
   return (
@@ -104,7 +97,7 @@ export default function CoachScreen() {
                 Hi, I&apos;m Maya, your AI Coach
               </Text>
               <Text variant="bodySmall" color="muted" className="text-center">
-                Ask me to plan your day, review your goals, or pick a prompt below to get started.
+                Pick a suggestion below to get started, or ask me anything.
               </Text>
             </Card>
           ) : (
@@ -128,16 +121,8 @@ export default function CoachScreen() {
           contentContainerClassName="items-center gap-2 px-6 pb-3"
           keyboardShouldPersistTaps="handled"
         >
-          {SUGGESTED_PROMPTS.map((prompt) => (
-            <Pressable
-              key={prompt.label}
-              accessibilityRole="button"
-              onPress={() => onPrompt(prompt)}
-              className="flex-row items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-2 dark:border-border-dark dark:bg-surface-dark"
-            >
-              <Ionicons name={prompt.icon} size={14} color={colors.primary} />
-              <Text variant="caption">{prompt.label}</Text>
-            </Pressable>
+          {(suggestionCards ?? []).map((card) => (
+            <SuggestionCard key={card.id} card={card} onPress={() => onCardPress(card)} />
           ))}
         </ScrollView>
 
@@ -169,6 +154,12 @@ export default function CoachScreen() {
           />
         </View>
       </KeyboardAvoidingView>
+
+      <MoodCheckInSheet
+        visible={pendingMoodCard !== null}
+        onSelect={onMoodSelected}
+        onDismiss={() => setPendingMoodCard(null)}
+      />
     </SafeAreaView>
   );
 }
