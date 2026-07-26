@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { BarChart, Card, Heatmap, LineChart, ModalHeader, Text } from '@/shared/ui';
+import { BarChart, Card, ErrorState, Heatmap, LineChart, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useAnalyticsSummary } from '@/features/analytics/application/analytics.hooks';
 import { useHabitLogs, useHabits } from '@/features/habits/application/habit.hooks';
@@ -14,8 +14,13 @@ import { formatWeekdayShort, subtractDays, todayKey } from '@/shared/lib/date';
 const HEATMAP_DAYS = 30;
 
 export default function AnalyticsScreen() {
-  const { data, isLoading } = useAnalyticsSummary(7);
-  const { data: monthly, isLoading: monthlyLoading } = useAnalyticsSummary(HEATMAP_DAYS);
+  const { data, isLoading, isError, refetch } = useAnalyticsSummary(7);
+  const {
+    data: monthly,
+    isLoading: monthlyLoading,
+    isError: monthlyError,
+    refetch: refetchMonthly,
+  } = useAnalyticsSummary(HEATMAP_DAYS);
   const { data: habits } = useHabits();
 
   const monthStart = subtractDays(todayKey(), HEATMAP_DAYS - 1);
@@ -32,6 +37,14 @@ export default function AnalyticsScreen() {
     () => (habits && monthLogs ? computeCategoryBreakdown(habits, monthLogs, monthDates) : []),
     [habits, monthLogs, monthDates]
   );
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
+        <ErrorState description="Couldn't load your analytics. Check your connection and try again." onRetry={() => refetch()} />
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading || !data) {
     return (
@@ -124,7 +137,9 @@ export default function AnalyticsScreen() {
               Last {HEATMAP_DAYS} days
             </Text>
           </View>
-          {monthlyLoading || !monthly ? (
+          {monthlyError ? (
+            <ErrorState description="Couldn't load the heatmap." onRetry={() => refetchMonthly()} />
+          ) : monthlyLoading || !monthly ? (
             <Text variant="bodySmall" color="muted">
               Loading...
             </Text>

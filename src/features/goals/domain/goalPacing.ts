@@ -8,6 +8,14 @@ export interface GoalPacing {
   /** Deterministic pacing indicator (progress vs. time elapsed), not an AI prediction. */
   confidencePercent: number;
   phase: GoalPhase;
+  /**
+   * False when there's no real pacing signal yet (no deadline to measure
+   * elapsed time against, and no progress logged) - confidencePercent is 0
+   * in that case only because there's nothing to compute from, not because
+   * the goal is behind. Callers should render a neutral state instead of
+   * treating it as "behind".
+   */
+  hasSignal: boolean;
 }
 
 function phaseForProgress(progressPercent: number): GoalPhase {
@@ -39,5 +47,6 @@ export function getGoalPacing(goal: Goal): GoalPacing {
     elapsedPercent,
     confidencePercent,
     phase: phaseForProgress(progressPercent),
+    hasSignal: !(elapsedPercent === null && progressPercent === 0),
   };
 }

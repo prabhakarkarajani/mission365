@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button, Card, Chip, Input, ModalHeader, Text } from '@/shared/ui';
+import { Button, Card, Chip, ErrorState, Input, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useCreateTrackerLog, useTrackerSummary } from '@/features/trackers/application/tracker.hooks';
 
@@ -13,7 +13,7 @@ const WORKOUT_TYPES = ['Cardio', 'Strength', 'Yoga', 'Sports'];
 const SLEEP_QUALITIES = ['poor', 'fair', 'good', 'excellent'] as const;
 
 export default function TrackersScreen() {
-  const { data: summary } = useTrackerSummary();
+  const { data: summary, isError, refetch } = useTrackerSummary();
   const createLog = useCreateTrackerLog();
 
   const [workoutMinutes, setWorkoutMinutes] = useState('');
@@ -46,6 +46,12 @@ export default function TrackersScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ModalHeader title="Trackers" />
       <ScrollView contentContainerClassName="gap-5 px-6 pb-8">
+        {isError ? (
+          <Card>
+            <ErrorState description="Couldn't load today's tracker totals - the 0s below aren't real yet." onRetry={() => refetch()} />
+          </Card>
+        ) : null}
+
         <Card className="gap-3">
           <View className="flex-row items-center gap-2">
             <Ionicons name="water-outline" size={20} color={colors.primary} />

@@ -15,5 +15,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": ["node_modules", "backend", "dist", "ios"]
+  "exclude": ["node_modules", "backend", "dist", "ios", "**/*.test.ts"]
 }

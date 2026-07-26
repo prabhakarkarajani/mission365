@@ -13,6 +13,8 @@ interface GoalBuilderState {
   selectedCategories: string[];
   goalTitle: string;
   targetDeadline?: string;
+  /** Goal Impact weight, 1-5, same scale/default as the manual Goal-creation flow and Goal.importance. */
+  importance: number;
   currentLevel: GoalCurrentLevel;
   dailyTimeBudget: DailyTimeBudget;
   preferredWorkingHours: PreferredWorkingHours[];
@@ -27,6 +29,7 @@ const initialState = {
   selectedCategories: [] as string[],
   goalTitle: '',
   targetDeadline: undefined as string | undefined,
+  importance: 3,
   currentLevel: 'beginner' as GoalCurrentLevel,
   dailyTimeBudget: '30_60' as DailyTimeBudget,
   preferredWorkingHours: [] as PreferredWorkingHours[],

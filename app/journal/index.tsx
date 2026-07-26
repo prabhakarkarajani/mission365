@@ -3,14 +3,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Card, IconButton, ModalHeader, Text } from '@/shared/ui';
+import { Card, ErrorState, IconButton, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useJournalEntries } from '@/features/journal/application/journal.hooks';
 import { getMoodMeta } from '@/features/journal/domain/moods';
 import { formatDisplayDate } from '@/shared/lib/date';
 
 export default function JournalListScreen() {
-  const { data: entries, isLoading } = useJournalEntries();
+  const { data: entries, isLoading, isError, refetch } = useJournalEntries();
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top', 'bottom']}>
@@ -30,6 +30,10 @@ export default function JournalListScreen() {
       <ScrollView contentContainerClassName="gap-3 px-6 pb-8">
         {isLoading ? (
           <Text color="muted">Loading...</Text>
+        ) : isError ? (
+          <Card>
+            <ErrorState description="Couldn't load your journal. Check your connection and try again." onRetry={() => refetch()} />
+          </Card>
         ) : !entries || entries.length === 0 ? (
           <Card className="items-center gap-2 py-10">
             <Ionicons name="book-outline" size={32} color={colors.muted} />

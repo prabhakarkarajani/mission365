@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Card, Chip, CircularProgress, EmptyState, IconButton, Skeleton, Text } from '@/shared/ui';
+import { Card, Chip, CircularProgress, EmptyState, ErrorState, IconButton, Skeleton, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useGoals } from '@/features/goals/application/goal.hooks';
 import { getGoalPacing } from '@/features/goals/domain/goalPacing';
@@ -19,7 +19,7 @@ const TABS: { value: GoalStatus; label: string }[] = [
 
 export default function GoalsScreen() {
   const [status, setStatus] = useState<GoalStatus>('active');
-  const { data: goals, isLoading } = useGoals(status);
+  const { data: goals, isLoading, isError, refetch } = useGoals(status);
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top']}>
@@ -61,6 +61,10 @@ export default function GoalsScreen() {
               </View>
             </View>
           </View>
+        ) : isError ? (
+          <Card>
+            <ErrorState description="Couldn't load your goals. Check your connection and try again." onRetry={() => refetch()} />
+          </Card>
         ) : !goals || goals.length === 0 ? (
           <Card>
             <EmptyState
@@ -82,7 +86,13 @@ function GoalListCard({ goal }: { goal: Goal }) {
   const pacing = getGoalPacing(goal);
   const currentMilestone = goal.milestones.find((m) => !m.completed);
   const daysRemaining = daysUntil(goal.deadline);
-  const confidenceColor = pacing.confidencePercent >= 60 ? 'success' : pacing.confidencePercent >= 35 ? 'warning' : 'danger';
+  const confidenceColor = !pacing.hasSignal
+    ? 'muted'
+    : pacing.confidencePercent >= 60
+      ? 'success'
+      : pacing.confidencePercent >= 35
+        ? 'warning'
+        : 'danger';
 
   return (
     <Card className="gap-4">
@@ -102,7 +112,7 @@ function GoalListCard({ goal }: { goal: Goal }) {
           <View className="flex-row items-center gap-1">
             <Ionicons name="trending-up-outline" size={12} color={colors[confidenceColor]} />
             <Text variant="caption" color={confidenceColor}>
-              {pacing.confidencePercent}% pace · {pacing.phase}
+              {pacing.hasSignal ? `${pacing.confidencePercent}% pace · ${pacing.phase}` : 'Just getting started'}
             </Text>
           </View>
         </View>

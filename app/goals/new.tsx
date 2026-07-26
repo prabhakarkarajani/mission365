@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { z } from 'zod';
 
-import { Button, Input, ModalHeader, Text } from '@/shared/ui';
+import { Button, Chip, DatePickerInput, Input, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useCreateGoal } from '@/features/goals/application/goal.hooks';
 import { useDreams } from '@/features/dreams/hooks/dream.hooks';
@@ -24,6 +24,18 @@ const goalSchema = z.object({
 
 type GoalForm = z.infer<typeof goalSchema>;
 
+// Same 1-5 scale and default as the backend schema (Goal.importance) and the
+// AI Goal Builder's importance step - both creation flows must stay
+// behaviorally identical (Sprint 7).
+const IMPORTANCE_LEVELS: { value: number; label: string }[] = [
+  { value: 1, label: 'Low' },
+  { value: 2, label: 'Mild' },
+  { value: 3, label: 'Medium' },
+  { value: 4, label: 'High' },
+  { value: 5, label: 'Critical' },
+];
+const DEFAULT_IMPORTANCE = 3;
+
 export default function NewGoalScreen() {
   const { dreamId } = useLocalSearchParams<{ dreamId?: string }>();
   const { data: dreams } = useDreams();
@@ -33,6 +45,8 @@ export default function NewGoalScreen() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [milestones, setMilestones] = useState<string[]>([]);
   const [milestoneDraft, setMilestoneDraft] = useState('');
+  const [importance, setImportance] = useState(DEFAULT_IMPORTANCE);
+  const [deadline, setDeadline] = useState<string | undefined>(undefined);
 
   const {
     control,
@@ -62,6 +76,8 @@ export default function NewGoalScreen() {
         targetValue: Number(values.targetValue),
         unit: values.unit,
         dreamId: dreamId ?? undefined,
+        importance,
+        deadline: deadline ?? null,
         milestones: milestones.map((title) => ({ title })),
       });
       router.back();
@@ -122,6 +138,29 @@ export default function NewGoalScreen() {
             />
           </View>
         </View>
+
+        <View className="gap-2">
+          <Text variant="bodySmall" color="muted">
+            Importance
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {IMPORTANCE_LEVELS.map((level) => (
+              <Chip
+                key={level.value}
+                label={level.label}
+                selected={importance === level.value}
+                onPress={() => setImportance(level.value)}
+              />
+            ))}
+          </View>
+        </View>
+
+        <DatePickerInput
+          label="Deadline (optional)"
+          value={deadline}
+          onChange={setDeadline}
+          minimumDate={new Date()}
+        />
 
         <View className="gap-2">
           <Text variant="bodySmall" color="muted">

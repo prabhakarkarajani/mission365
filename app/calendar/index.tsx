@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Card, ModalHeader, Text, cn } from '@/shared/ui';
+import { Card, ErrorState, ModalHeader, Text, cn } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { getMonthGrid, todayKey } from '@/shared/lib/date';
 import { useHabitLogs } from '@/features/habits/application/habit.hooks';
@@ -24,8 +24,13 @@ export default function CalendarScreen() {
   const monthStart = grid[0].dateKey;
   const monthEnd = grid[grid.length - 1].dateKey;
 
-  const { data: habitLogs } = useHabitLogs(monthStart, monthEnd);
-  const { data: journalEntries } = useJournalEntries(monthStart, monthEnd);
+  const { data: habitLogs, isError: habitLogsError, refetch: refetchHabitLogs } = useHabitLogs(monthStart, monthEnd);
+  const {
+    data: journalEntries,
+    isError: journalError,
+    refetch: refetchJournal,
+  } = useJournalEntries(monthStart, monthEnd);
+  const isError = habitLogsError || journalError;
 
   const habitDates = useMemo(() => new Set((habitLogs ?? []).map((l) => l.date)), [habitLogs]);
   const moodByDate = useMemo(() => {
@@ -48,6 +53,18 @@ export default function CalendarScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ModalHeader title="Calendar" />
       <ScrollView contentContainerClassName="gap-4 px-6 pb-8">
+        {isError ? (
+          <Card>
+            <ErrorState
+              description="Couldn't load habit/mood history - the calendar below may be incomplete."
+              onRetry={() => {
+                refetchHabitLogs();
+                refetchJournal();
+              }}
+            />
+          </Card>
+        ) : null}
+
         <View className="flex-row items-center justify-between">
           <Pressable accessibilityRole="button" onPress={() => goToMonth(-1)} hitSlop={8}>
             <Ionicons name="chevron-back" size={20} color={colors.muted} />

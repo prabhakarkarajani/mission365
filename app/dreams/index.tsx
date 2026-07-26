@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Badge, Card, Chip, EmptyState, IconButton, Skeleton, Text } from '@/shared/ui';
+import { Badge, Card, Chip, EmptyState, ErrorState, IconButton, ModalHeader, Skeleton, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { asIoniconName } from '@/shared/lib/icon-name';
 import { useDreams } from '@/features/dreams/hooks/dream.hooks';
@@ -17,16 +17,24 @@ const TABS: { value: DreamStatus; label: string }[] = [
 
 export default function DreamsScreen() {
   const [status, setStatus] = useState<DreamStatus>('active');
-  const { data: dreams, isLoading } = useDreams(status);
+  const { data: dreams, isLoading, isError, refetch } = useDreams(status);
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerClassName="gap-4 p-6">
-        <View className="flex-row items-center justify-between">
-          <Text variant="h1">Dreams</Text>
-          <IconButton icon="add" accessibilityLabel="Add dream" onPress={() => router.push('/dreams/new')} />
-        </View>
+      <ModalHeader
+        title="Dreams"
+        rightAction={
+          <IconButton
+            icon="add"
+            size={32}
+            iconSize={18}
+            accessibilityLabel="Add dream"
+            onPress={() => router.push('/dreams/new')}
+          />
+        }
+      />
+      <ScrollView contentContainerClassName="gap-4 px-6 pb-6">
         <Text variant="bodySmall" color="muted">
           The destination behind your goals — who you&rsquo;re becoming, not just what you&rsquo;re doing.
         </Text>
@@ -47,6 +55,10 @@ export default function DreamsScreen() {
             <Skeleton style={{ height: 16, width: '70%' }} />
             <Skeleton style={{ height: 12, width: '90%' }} />
           </View>
+        ) : isError ? (
+          <Card>
+            <ErrorState description="Couldn't load your dreams. Check your connection and try again." onRetry={() => refetch()} />
+          </Card>
         ) : !dreams || dreams.length === 0 ? (
           <Card>
             <EmptyState

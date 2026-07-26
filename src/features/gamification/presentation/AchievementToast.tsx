@@ -29,7 +29,13 @@ export function AchievementToast() {
   return (
     <View
       pointerEvents="box-none"
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, paddingTop: insets.top + 8 }}
+      // Cleared below a standard ModalHeader (px-6 py-4 + h3 text ≈ 56px)
+      // plus the Today screen's progress summary row directly beneath it
+      // (the shortest realistic header+content combo, e.g. app/today/index.tsx
+      // when there's no recommended-mission card) so the toast never overlaps
+      // it - this toast is mounted once globally (app/_layout.tsx) with no
+      // per-screen awareness.
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, paddingTop: insets.top + 112 }}
       className="items-center px-4"
     >
       <Animated.View entering={FadeInDown} exiting={FadeOutUp}>

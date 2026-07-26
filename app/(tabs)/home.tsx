@@ -4,7 +4,7 @@ import { router, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Confetti, EmptyState, MissionCardSkeleton, Text } from '@/shared/ui';
+import { Card, Confetti, EmptyState, ErrorState, MissionCardSkeleton, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useAuthStore } from '@/features/auth/application/auth.store';
 import { useToggleHabitCompletion } from '@/features/habits/application/habit.hooks';
@@ -22,9 +22,11 @@ import { UpcomingRemindersTimeline } from '@/features/home/presentation/Upcoming
 import { AchievementStrip } from '@/features/home/presentation/AchievementStrip';
 
 const QUICK_ACTIONS: { href: Href; icon: IoniconName; label: string; color: string }[] = [
+  { href: '/today', icon: 'sunny-outline', label: 'Today', color: colors.primary },
   { href: '/coach', icon: 'sparkles-outline', label: 'Ask AI', color: colors.primary },
   { href: '/goals/new', icon: 'flag-outline', label: 'New Goal', color: colors.accent },
   { href: '/habits/new', icon: 'add-circle-outline', label: 'New Mission', color: colors.success },
+  { href: '/dreams', icon: 'telescope-outline', label: 'Dreams', color: colors.secondary },
   { href: '/calendar', icon: 'calendar-outline', label: 'Calendar', color: colors.warning },
   { href: '/analytics', icon: 'bar-chart-outline', label: 'Insights', color: colors.secondary },
 ];
@@ -107,80 +109,88 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Today's Brief */}
-        <TodaysBriefCard brief={brief} currentStreak={user?.currentStreak ?? 0} xp={user?.xp ?? 0} level={user?.level ?? 1} />
+        {brief.isError ? (
+          <Card>
+            <ErrorState description="Couldn't load today's brief. Check your connection and try again." onRetry={() => brief.refetch()} />
+          </Card>
+        ) : (
+          <>
+            {/* Today's Brief */}
+            <TodaysBriefCard brief={brief} currentStreak={user?.currentStreak ?? 0} xp={user?.xp ?? 0} level={user?.level ?? 1} />
 
-        {/* AI Coach */}
-        {!coachDismissed ? (
-          <AICoachCard
-            firstName={firstName}
-            topPendingMission={brief.topPendingMission}
-            onDismiss={() => setCoachDismissed(true)}
-          />
-        ) : null}
+            {/* AI Coach */}
+            {!coachDismissed ? (
+              <AICoachCard
+                firstName={firstName}
+                topPendingMission={brief.topPendingMission}
+                onDismiss={() => setCoachDismissed(true)}
+              />
+            ) : null}
 
-        {/* Current Goal */}
-        <CurrentGoalCard goal={brief.currentGoal} milestone={brief.currentMilestone} daysRemaining={brief.daysRemaining} />
+            {/* Current Goal */}
+            <CurrentGoalCard goal={brief.currentGoal} milestone={brief.currentMilestone} daysRemaining={brief.daysRemaining} />
 
-        {/* Today's Missions */}
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text variant="h3">Today&apos;s Missions</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add mission"
-              onPress={() => router.push('/habits/new')}
-            >
-              <Text color="primary" variant="bodySmall">
-                + Add
-              </Text>
-            </Pressable>
-          </View>
-
-          {brief.isLoading ? (
+            {/* Today's Missions */}
             <View className="gap-3">
-              <MissionCardSkeleton />
-              <MissionCardSkeleton />
-              <MissionCardSkeleton />
+              <View className="flex-row items-center justify-between">
+                <Text variant="h3">Today&apos;s Missions</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Add mission"
+                  onPress={() => router.push('/habits/new')}
+                >
+                  <Text color="primary" variant="bodySmall">
+                    + Add
+                  </Text>
+                </Pressable>
+              </View>
+
+              {brief.isLoading ? (
+                <View className="gap-3">
+                  <MissionCardSkeleton />
+                  <MissionCardSkeleton />
+                  <MissionCardSkeleton />
+                </View>
+              ) : brief.missions.length === 0 ? (
+                <View className="rounded-card bg-surface p-4 shadow-elevation-sm dark:bg-surface-dark">
+                  <EmptyState
+                    icon="rocket-outline"
+                    title="No missions yet"
+                    description="Add your first one to start today's missions."
+                    actionLabel="Add a mission"
+                    onAction={() => router.push('/habits/new')}
+                  />
+                </View>
+              ) : (
+                brief.missions.map((item) => (
+                  <MissionCard
+                    key={item.mission.habit._id}
+                    item={item}
+                    onToggle={() =>
+                      toggleCompletion.mutate({
+                        habitId: item.mission.habit._id,
+                        date: todayKey(),
+                        completed: !item.mission.completed,
+                      })
+                    }
+                  />
+                ))
+              )}
             </View>
-          ) : brief.missions.length === 0 ? (
-            <View className="rounded-card bg-surface p-4 shadow-elevation-sm dark:bg-surface-dark">
-              <EmptyState
-                icon="rocket-outline"
-                title="No missions yet"
-                description="Add your first one to start today's missions."
-                actionLabel="Add a mission"
-                onAction={() => router.push('/habits/new')}
-              />
-            </View>
-          ) : (
-            brief.missions.map((item) => (
-              <MissionCard
-                key={item.mission.habit._id}
-                item={item}
-                onToggle={() =>
-                  toggleCompletion.mutate({
-                    habitId: item.mission.habit._id,
-                    date: todayKey(),
-                    completed: !item.mission.completed,
-                  })
-                }
-              />
-            ))
-          )}
-        </View>
 
-        {/* Smart AI Suggestions */}
-        <SmartSuggestionsCard />
+            {/* Smart AI Suggestions */}
+            <SmartSuggestionsCard />
 
-        {/* Continue CTA */}
-        <ContinueMissionCTA topPendingMission={brief.topPendingMission} />
+            {/* Continue CTA */}
+            <ContinueMissionCTA topPendingMission={brief.topPendingMission} />
 
-        {/* Upcoming Reminders */}
-        <UpcomingRemindersTimeline missions={brief.missions.filter((m) => !m.mission.completed)} />
+            {/* Upcoming Reminders */}
+            <UpcomingRemindersTimeline missions={brief.missions.filter((m) => !m.mission.completed)} />
 
-        {/* Achievements */}
-        <AchievementStrip xp={user?.xp ?? 0} level={user?.level ?? 1} currentStreak={user?.currentStreak ?? 0} />
+            {/* Achievements */}
+            <AchievementStrip xp={user?.xp ?? 0} level={user?.level ?? 1} currentStreak={user?.currentStreak ?? 0} />
+          </>
+        )}
 
         {/* Quick Actions */}
         <View className="gap-3">

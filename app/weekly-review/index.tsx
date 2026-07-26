@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { BarChart, Button, Card, LoadingState, ModalHeader, Text } from '@/shared/ui';
+import { BarChart, Button, Card, ErrorState, LoadingState, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { useAnalyticsSummary } from '@/features/analytics/application/analytics.hooks';
 import { useHabitLogs, useHabits } from '@/features/habits/application/habit.hooks';
@@ -13,11 +13,11 @@ import { buildWeeklyInsight } from '@/features/analytics/domain/weeklyReviewInsi
 import { subtractDays, todayKey } from '@/shared/lib/date';
 
 export default function WeeklyReviewScreen() {
-  const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary(7);
-  const { data: habits, isLoading: habitsLoading } = useHabits();
+  const { data: summary, isLoading: summaryLoading, isError: summaryError, refetch: refetchSummary } = useAnalyticsSummary(7);
+  const { data: habits, isLoading: habitsLoading, isError: habitsError, refetch: refetchHabits } = useHabits();
   const start = subtractDays(todayKey(), 6);
   const end = todayKey();
-  const { data: logs, isLoading: logsLoading } = useHabitLogs(start, end);
+  const { data: logs, isLoading: logsLoading, isError: logsError, refetch: refetchLogs } = useHabitLogs(start, end);
 
   const dates = useMemo(() => {
     const out: string[] = [];
@@ -37,12 +37,24 @@ export default function WeeklyReviewScreen() {
   const worstDay = daysWithData.length > 0 ? [...daysWithData].sort((a, b) => a.percent - b.percent)[0] : null;
 
   const isLoading = summaryLoading || habitsLoading || logsLoading;
+  const isError = summaryError || habitsError || logsError;
+  const refetchAll = () => {
+    refetchSummary();
+    refetchHabits();
+    refetchLogs();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-background-dark" edges={['top', 'bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
       <ModalHeader title="Weekly Review" />
-      {isLoading || !summary ? (
+      {isError ? (
+        <ErrorState
+          className="flex-1 items-center justify-center"
+          description="Couldn't crunch your week. Check your connection and try again."
+          onRetry={refetchAll}
+        />
+      ) : isLoading || !summary ? (
         <LoadingState label="Crunching your week..." />
       ) : (
         <ScrollView contentContainerClassName="gap-5 px-6 pb-8">

@@ -1,4 +1,5 @@
 import type { TodayMission } from '@/features/habits/domain/types';
+import { getMissionPresentation } from '@/features/home/domain/missionPresentation';
 import type { Mission } from '../types/mission.types';
 
 /**
@@ -17,5 +18,8 @@ export function habitToMission(todayMission: TodayMission): Mission {
     skippedToday: todayMission.skipped,
     goalId: habit.goalId,
     milestoneId: habit.milestoneId,
+    priority: getMissionPresentation(habit.category).priority,
+    reminderTime: habit.reminderTime,
+    currentStreak: habit.currentStreak,
   };
 }

@@ -29,7 +29,7 @@ type StepStatus = 'pending' | 'active' | 'done' | 'error';
 
 export default function CreatingScreen() {
   const { skipMissions } = useLocalSearchParams<{ skipMissions?: string }>();
-  const { goalTitle, selectedCategories, targetDeadline, roadmap, preferredWorkingHours, reset } =
+  const { goalTitle, selectedCategories, targetDeadline, importance, roadmap, preferredWorkingHours, reset } =
     useGoalBuilderStore();
   const createGoal = useCreateGoal();
   const createHabit = useCreateHabit();
@@ -55,6 +55,7 @@ export default function CreatingScreen() {
           color: category?.color,
           targetValue: 100,
           unit: '%',
+          importance,
           deadline: targetDeadline ?? null,
           milestones: roadmap!.milestones.map((m) => ({ title: m.title })),
         });

@@ -16,6 +16,7 @@ export interface BriefMission {
 
 export interface HomeBrief {
   isLoading: boolean;
+  isError: boolean;
   missions: BriefMission[];
   completedCount: number;
   pendingCount: number;
@@ -30,8 +31,13 @@ export interface HomeBrief {
 }
 
 export function useHomeBrief(): HomeBrief {
-  const { data: missionsData, isLoading: missionsLoading, refetch } = useTodayMissions();
-  const { data: goals, isLoading: goalsLoading } = useGoals('active');
+  const {
+    data: missionsData,
+    isLoading: missionsLoading,
+    isError: missionsError,
+    refetch: refetchMissions,
+  } = useTodayMissions();
+  const { data: goals, isLoading: goalsLoading, isError: goalsError, refetch: refetchGoals } = useGoals('active');
 
   const enriched = useMemo<BriefMission[]>(() => {
     const missions = missionsData?.missions ?? [];
@@ -58,8 +64,17 @@ export function useHomeBrief(): HomeBrief {
   const currentMilestone = currentGoal?.milestones.find((m) => !m.completed) ?? null;
   const daysRemaining = daysUntil(currentGoal?.deadline ?? null);
 
+  // Pull-to-refresh (app/(tabs)/home.tsx) and the error-state Retry button
+  // both call this - it used to only refetch missions, silently leaving
+  // goals stale (and never recovering from a goals-query error) since
+  // useTodayMissions()'s refetch was the only one ever exposed.
+  const refetch = async () => {
+    await Promise.all([refetchMissions(), refetchGoals()]);
+  };
+
   return {
     isLoading: missionsLoading || goalsLoading,
+    isError: missionsError || goalsError,
     missions: enriched,
     completedCount: completed.length,
     pendingCount: pending.length,

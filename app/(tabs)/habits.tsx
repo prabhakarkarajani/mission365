@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Card, EmptyState, IconButton, LoadingState, Text } from '@/shared/ui';
+import { Card, EmptyState, ErrorState, IconButton, LoadingState, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { asIoniconName } from '@/shared/lib/icon-name';
 import { formatDurationMinutes, formatTime12h } from '@/shared/lib/date';
@@ -14,7 +14,7 @@ import { getMissionPresentation, PRIORITY_COLOR } from '@/features/home/domain/m
 import type { Habit } from '@/features/habits/domain/types';
 
 export default function HabitsScreen() {
-  const { data: habits, isLoading } = useHabits();
+  const { data: habits, isLoading, isError, refetch } = useHabits();
   useSyncHabitReminders(habits);
 
   const withReminders = (habits ?? [])
@@ -31,6 +31,10 @@ export default function HabitsScreen() {
 
         {isLoading ? (
           <LoadingState label="Loading missions..." />
+        ) : isError ? (
+          <Card>
+            <ErrorState description="Couldn't load your missions. Check your connection and try again." onRetry={() => refetch()} />
+          </Card>
         ) : !habits || habits.length === 0 ? (
           <Card>
             <EmptyState

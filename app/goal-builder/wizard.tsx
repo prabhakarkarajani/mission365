@@ -17,6 +17,17 @@ const LEVELS: { value: GoalCurrentLevel; label: string }[] = [
   { value: 'advanced', label: 'Advanced' },
 ];
 
+// Same 1-5 scale and default as the manual Goal-creation flow and the
+// backend's Goal.importance schema - both creation flows must stay
+// behaviorally identical (Sprint 7).
+const IMPORTANCE_LEVELS: { value: number; label: string }[] = [
+  { value: 1, label: 'Low' },
+  { value: 2, label: 'Mild' },
+  { value: 3, label: 'Medium' },
+  { value: 4, label: 'High' },
+  { value: 5, label: 'Critical' },
+];
+
 const TIME_BUDGETS: { value: DailyTimeBudget; label: string }[] = [
   { value: 'under_30', label: 'Under 30 min/day' },
   { value: '30_60', label: '30-60 min/day' },
@@ -58,6 +69,7 @@ export default function GoalBuilderWizardScreen() {
   const {
     goalTitle,
     targetDeadline,
+    importance,
     currentLevel,
     dailyTimeBudget,
     preferredWorkingHours,
@@ -167,6 +179,21 @@ export default function GoalBuilderWizardScreen() {
                     label={level.label}
                     selected={currentLevel === level.value}
                     onPress={() => update({ currentLevel: level.value })}
+                  />
+                ))}
+              </View>
+            </View>
+            <View className="gap-2">
+              <Text variant="bodySmall" color="muted">
+                Importance
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {IMPORTANCE_LEVELS.map((level) => (
+                  <Chip
+                    key={level.value}
+                    label={level.label}
+                    selected={importance === level.value}
+                    onPress={() => update({ importance: level.value })}
                   />
                 ))}
               </View>

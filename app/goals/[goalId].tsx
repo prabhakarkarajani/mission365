@@ -49,7 +49,13 @@ export default function GoalDetailScreen() {
   }
 
   const pacing = getGoalPacing(goal);
-  const confidenceColor = pacing.confidencePercent >= 60 ? 'success' : pacing.confidencePercent >= 35 ? 'warning' : 'danger';
+  const confidenceColor = !pacing.hasSignal
+    ? 'muted'
+    : pacing.confidencePercent >= 60
+      ? 'success'
+      : pacing.confidencePercent >= 35
+        ? 'warning'
+        : 'danger';
 
   // Milestones don't carry individual target dates, so "today" is placed
   // proportionally along the milestone sequence using elapsed time through
@@ -91,7 +97,7 @@ export default function GoalDetailScreen() {
               {goal.currentValue} / {goal.targetValue} {goal.unit} ({Math.round(pacing.progressPercent)}%)
             </Text>
             <Text variant="bodySmall" color={confidenceColor}>
-              {pacing.confidencePercent}% pace · {pacing.phase}
+              {pacing.hasSignal ? `${pacing.confidencePercent}% pace · ${pacing.phase}` : 'Just getting started'}
             </Text>
           </View>
           {goal.status === 'completed' ? (

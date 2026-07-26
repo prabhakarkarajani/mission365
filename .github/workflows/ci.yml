@@ -28,7 +28,7 @@ jobs:
       - run: npm test
 
   frontend:
-    name: Frontend (typecheck, lint)
+    name: Frontend (typecheck, lint, test)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +38,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
+
+      # Pure static check, no dependency on node_modules - runs before
+      # `npm ci` so a regression fails fast without waiting on install.
+      - name: Query error-handling guard
+        run: node scripts/check-query-error-handling.js
 
       - run: npm ci
 
@@ -61,3 +66,4 @@ jobs:
 
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm test

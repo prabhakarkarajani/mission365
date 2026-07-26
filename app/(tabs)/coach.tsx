@@ -124,7 +124,8 @@ export default function CoachScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerClassName="gap-2 px-6 pb-3"
+          className="flex-none"
+          contentContainerClassName="items-center gap-2 px-6 pb-3"
           keyboardShouldPersistTaps="handled"
         >
           {SUGGESTED_PROMPTS.map((prompt) => (
@@ -202,11 +203,11 @@ function ChatBubble({
       <Avatar role={role} initial={userInitial} />
       <View
         className={cn(
-          'rounded-card px-4 py-3',
+          'min-w-0 shrink rounded-card px-4 py-3',
           isUser ? 'rounded-br-sm bg-primary' : 'rounded-bl-sm bg-surface dark:bg-surface-dark'
         )}
       >
-        <Text variant="body" color={isUser ? 'inverse' : 'default'}>
+        <Text variant="body" color={isUser ? 'inverse' : 'default'} className="flex-shrink">
           {content}
         </Text>
       </View>

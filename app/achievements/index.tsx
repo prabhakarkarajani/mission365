@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Card, ModalHeader, Text } from '@/shared/ui';
+import { Card, ErrorState, ModalHeader, Text } from '@/shared/ui';
 import { colors } from '@/shared/theme';
 import { asIoniconName } from '@/shared/lib/icon-name';
 import { useAuthStore } from '@/features/auth/application/auth.store';
@@ -11,7 +11,7 @@ import { useAchievements } from '@/features/gamification/application/achievement
 
 export default function AchievementsScreen() {
   const user = useAuthStore((s) => s.user);
-  const { data: achievements, isLoading } = useAchievements();
+  const { data: achievements, isLoading, isError, refetch } = useAchievements();
   const unlockedCount = achievements?.filter((a) => a.unlocked).length ?? 0;
 
   return (
@@ -48,6 +48,10 @@ export default function AchievementsScreen() {
 
         {isLoading ? (
           <Text color="muted">Loading...</Text>
+        ) : isError ? (
+          <Card>
+            <ErrorState description="Couldn't load your achievements. Check your connection and try again." onRetry={() => refetch()} />
+          </Card>
         ) : (
           achievements?.map((achievement) => (
             <Card

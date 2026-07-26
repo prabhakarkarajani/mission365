@@ -25,4 +25,8 @@ export interface Mission {
   /** Traceable Purpose (ADR-003) - which Goal/Milestone this traces to, if any. */
   goalId: string | null;
   milestoneId: string | null;
+  /** Real now (Sprint 6) - derived from the backing habit's category, not a placeholder. */
+  priority: MissionPriority;
+  reminderTime: string | null;
+  currentStreak: number;
 }

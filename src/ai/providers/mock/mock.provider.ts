@@ -160,6 +160,16 @@ function motivateReply(context: CoachContext): string {
   return `${line}${streakLine}`;
 }
 
+function generateRoadmapReply(context: CoachContext): string {
+  if (context.goals.length === 0) {
+    return "You don't have an active goal yet, so there's nothing to build a roadmap for. Want to create one? Tap the sparkle button and I'll help shape it into milestones and a first week of missions.";
+  }
+  const goal = context.goals[0];
+  const pct = Math.round(goal.percentComplete);
+  const deadline = goal.deadline ? `, due ${new Date(goal.deadline).toLocaleDateString()}` : '';
+  return `"${goal.title}" is your current goal, ${pct}% there (${goal.currentValue}/${goal.targetValue}${goal.unit ? ` ${goal.unit}` : ''}${deadline}). Its full milestone roadmap lives on the goal's own page — open it from the Goals tab to see or adjust the path.`;
+}
+
 function createGoalReply(): string {
   return "Let's build one together — tap the sparkle button below or say what you're aiming for and I'll help shape it into a plan.";
 }
@@ -185,6 +195,9 @@ function generateMockChatReply(input: ChatInput): string {
   }
   if (text.includes('review my goals') || text.includes('review goals') || text.includes('goal progress') || text.includes('my goals')) {
     return reviewGoalsReply(input.context);
+  }
+  if (text.includes('roadmap')) {
+    return generateRoadmapReply(input.context);
   }
   if (text.includes('motivate')) {
     return motivateReply(input.context);

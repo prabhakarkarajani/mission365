@@ -15,6 +15,8 @@ export interface Goal {
   category: string;
   icon: string;
   color: string;
+  /** Goal Impact weight the user assigns, 1 (low) - 5 (high). See backend/src/models/Goal.ts. */
+  importance: number;
   targetValue: number;
   currentValue: number;
   unit: string;
